@@ -19,19 +19,7 @@ import java.util.*;
 public class LevenshteinNode {
     private String word;
     private Set<String> neighbors;
-    private int layer;
-    public static Comparator<LevenshteinNode> NODE_COMPARATOR = (o1, o2) -> {
-        int l1 = o1.getLayer();
-        int l2 = o2.getLayer();
-        if (l1 == l2) {
-            return o1.getWord().compareTo(o2.getWord());
-        } else if (Math.abs(l1) == Math.abs(l2)) {
-            return -l1 + l2;
-        } else {
-            return Math.abs(l1) - Math.abs(l2);
-        }
-    };
-    /*public static void main(String[] args) {
+    public static void main(String[] args) {
         LevenshteinNode temp = new LevenshteinNode("monkey");
         System.out.println(temp.isNeighboring("money"));
         LevenshteinNode temp2 = new LevenshteinNode("money");
@@ -72,17 +60,15 @@ public class LevenshteinNode {
         System.out.println(temp4.isNeighboring("coney"));
         System.out.println(temp3.isNeighboring("money"));
         System.out.println(temp2.isNeighboring("monkey"));
-    }*/
+    }
 
     /**
      * Constructs with this word initialized to word, this layer set to layer and neighbors initialized as empty.
      * @param word Value to initialize word to.
-     * @param layer Value to initialize layer to.
      */
-    public LevenshteinNode(String word, int layer) {
+    public LevenshteinNode(String word) {
         this.word = word;
         neighbors = new HashSet<>();
-        this.layer = layer;
     }
 
     /**
@@ -144,11 +130,6 @@ public class LevenshteinNode {
         return word;
     }
 
-    /** Returns the layer this node lies on */
-    public int getLayer() {
-        return layer;
-    }
-
     /** Returns a set of the values of neighbors. */
     public Set<String> getNeighbors() {
         return neighbors;
@@ -165,7 +146,7 @@ public class LevenshteinNode {
 
     /** @return "[word] - [neighbors]" */
     public String toString() {
-        return word + "(" + layer + ") - " + neighbors;
+        return word;
     }
 
     /**

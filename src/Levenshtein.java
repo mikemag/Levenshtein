@@ -30,11 +30,93 @@ public class Levenshtein {
     }
     public static void main(String[] args) throws FileNotFoundException {
         long time1 = System.nanoTime();
-        Levenshtein test = new Levenshtein("src\\Dictionary.txt");
-        System.out.println("Distance between 'monkey' and 'business': " + test.findDistance("monkey", "business"));
+        Levenshtein test = new Levenshtein("src/Dictionary.txt");
+        System.out.println("Distance between 'monkey' and 'business': " + test.findDistance("monkey", "business", time1));
         System.out.println((System.nanoTime() - time1) / 1000000);
     }
-    public int findDistance(String w1, String w2) {
-
+    public int findDistance(String w1, String w2, long time1) {
+        LinkedList<HashSet<LevenshteinNode>> g1 = new LinkedList<>();
+        LinkedList<HashSet<LevenshteinNode>> g2 = new LinkedList<>();
+        g1.add(new HashSet<>(Arrays.asList(new LevenshteinNode(w1))));
+        g2.add(new HashSet<>(Arrays.asList(new LevenshteinNode(w2))));
+        LinkedList<HashSet<LevenshteinNode>> currentGraph = g1;
+        LinkedList<HashSet<LevenshteinNode>> otherGraph = g2;
+        while (!intersects(g1.getLast(), g2.getLast())) {
+            HashSet<LevenshteinNode> newNeighbors = new HashSet<>();
+            boolean foundNeighbors = false;
+            for (LevenshteinNode n : currentGraph.getLast()) {
+                if (n.findNeighbors(dictionary, lengthStarts.getOrDefault(n.getWord().length() - 1, 0),
+                        lengthStarts.getOrDefault(n.getWord().length() + 2, dictionary.size()))) {
+                    foundNeighbors = true;
+                    for (String w : n.getNeighbors()) {
+                        LevenshteinNode neighborNode = new LevenshteinNode(w);
+                        if (!graphContains(currentGraph, neighborNode)) {
+                            newNeighbors.add(neighborNode);
+                        }
+                    }
+                }
+            }
+            if (!foundNeighbors) {
+                return -1;
+            }
+            currentGraph.add(newNeighbors);
+            LinkedList<HashSet<LevenshteinNode>> temp = currentGraph;
+            currentGraph = otherGraph;
+            otherGraph = temp;
+            System.out.println("Graph 1 Size: " + graphSize(g1));
+            System.out.println("Graph 2 Size: " + graphSize(g2));
+            System.out.println((System.nanoTime() - time1) / 1000000);
+        }
+        return g1.size() + g2.size() - 2;
+    }
+    public int findDistanceAlt(String w1, String w2) {
+        LinkedList<HashSet<LevenshteinNode>> g1 = new LinkedList<>();
+        g1.add(new HashSet<>(Arrays.asList(new LevenshteinNode(w1))));
+        LevenshteinNode destination = new LevenshteinNode(w2);
+        while (!g1.getLast().contains(destination)) {
+            HashSet<LevenshteinNode> newNeighbors = new HashSet<>();
+            boolean foundNeighbors = false;
+            for (LevenshteinNode n : g1.getLast()) {
+                if (n.findNeighbors(dictionary, lengthStarts.getOrDefault(n.getWord().length() - 1, 0),
+                        lengthStarts.getOrDefault(n.getWord().length() + 2, dictionary.size()))) {
+                    foundNeighbors = true;
+                    for (String w : n.getNeighbors()) {
+                        LevenshteinNode neighborNode = new LevenshteinNode(w);
+                        if (!graphContains(g1, neighborNode)) {
+                            newNeighbors.add(neighborNode);
+                        }
+                    }
+                }
+            }
+            if (!foundNeighbors) {
+                return -1;
+            }
+            g1.add(newNeighbors);
+            System.out.println("Graph 1 Size: " + graphSize(g1));
+        }
+        return g1.size() - 1;
+    }
+    public boolean intersects(HashSet<LevenshteinNode> hs1, HashSet<LevenshteinNode> hs2) {
+        for (LevenshteinNode n : hs1) {
+            if (hs2.contains(n)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean graphContains(LinkedList<HashSet<LevenshteinNode>> g, LevenshteinNode n) {
+        for(HashSet<LevenshteinNode> hs : g) {
+            if (hs.contains(n)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public int graphSize(LinkedList<HashSet<LevenshteinNode>> g) {
+        int size = 0;
+        for (HashSet<LevenshteinNode> hs : g) {
+            size += hs.size();
+        }
+        return size;
     }
 }
