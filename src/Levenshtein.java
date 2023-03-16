@@ -8,6 +8,7 @@ Maintenance Log:
         It works for some pairs of words, but underestimates for others. After some testing, looks like a problem with isNeighboring (1:27)
         It works for all tested pairs except monkey -> business. Going to have to work that out and make the algorithm more efficient as it takes nearly 9 seconds for dog and quack (2:05)
     Attempted to fix findDistance but failed so miserably that I have to essentially restart (15 Mar 2023 0:45)
+    It now finds monkey -> business in 25 seconds, using the LinkedList of HashSets to store each layer (15 Mar 2023 10:57)
 */
 
 import java.io.*;
@@ -15,16 +16,16 @@ import java.util.*;
 
 public class Levenshtein {
     public final ArrayList<String> dictionary;
-    public final HashMap<Integer, Integer> lengthStarts;
+    public final Map<Integer, Integer> lengthStartIndexes;
     public Levenshtein(String filename) throws FileNotFoundException {
         dictionary = new ArrayList<>();
-        lengthStarts = new HashMap<>();
+        lengthStartIndexes = new HashMap<>();
         Scanner s = new Scanner(new File(filename));
         int i = 0;
         while (s.hasNext()) {
             String word = s.next();
             dictionary.add(word);
-            lengthStarts.putIfAbsent(word.length(), i);
+            lengthStartIndexes.putIfAbsent(word.length(), i);
             i++;
         }
     }
@@ -42,24 +43,21 @@ public class Levenshtein {
         LinkedList<HashSet<LevenshteinNode>> currentGraph = g1;
         LinkedList<HashSet<LevenshteinNode>> otherGraph = g2;
         while (!intersects(g1.getLast(), g2.getLast())) {
-            HashSet<LevenshteinNode> newNeighbors = new HashSet<>();
-            boolean foundNeighbors = false;
+            HashSet<LevenshteinNode> neighborsToAdd = new HashSet<>();
             for (LevenshteinNode n : currentGraph.getLast()) {
-                if (n.findNeighbors(dictionary, lengthStarts.getOrDefault(n.getWord().length() - 1, 0),
-                        lengthStarts.getOrDefault(n.getWord().length() + 2, dictionary.size()))) {
-                    foundNeighbors = true;
-                    for (String w : n.getNeighbors()) {
-                        LevenshteinNode neighborNode = new LevenshteinNode(w);
-                        if (!graphContains(currentGraph, neighborNode)) {
-                            newNeighbors.add(neighborNode);
+                Set<LevenshteinNode> nNeighbors = n.findNeighbors(dictionary, lengthStartIndexes);
+                if (!nNeighbors.isEmpty()) {
+                    for (LevenshteinNode nNeighbor: nNeighbors) {
+                        if (!graphContains(currentGraph, nNeighbor)) {
+                            neighborsToAdd.add(nNeighbor);
                         }
                     }
                 }
             }
-            if (!foundNeighbors) {
+            if (neighborsToAdd.isEmpty()) {
                 return -1;
             }
-            currentGraph.add(newNeighbors);
+            currentGraph.add(neighborsToAdd);
             LinkedList<HashSet<LevenshteinNode>> temp = currentGraph;
             currentGraph = otherGraph;
             otherGraph = temp;
@@ -69,7 +67,7 @@ public class Levenshtein {
         }
         return g1.size() + g2.size() - 2;
     }
-    public int findDistanceAlt(String w1, String w2) {
+    /*public int findDistanceAlt(String w1, String w2) {
         LinkedList<HashSet<LevenshteinNode>> g1 = new LinkedList<>();
         g1.add(new HashSet<>(Arrays.asList(new LevenshteinNode(w1))));
         LevenshteinNode destination = new LevenshteinNode(w2);
@@ -95,7 +93,7 @@ public class Levenshtein {
             System.out.println("Graph 1 Size: " + graphSize(g1));
         }
         return g1.size() - 1;
-    }
+    }*/
     public boolean intersects(HashSet<LevenshteinNode> hs1, HashSet<LevenshteinNode> hs2) {
         for (LevenshteinNode n : hs1) {
             if (hs2.contains(n)) {

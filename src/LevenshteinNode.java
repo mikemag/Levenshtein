@@ -12,13 +12,14 @@ Maintenance Log:
     By testing each comparison in monkey -> business, I was able to find the problems with and fix isNeighboring (Pi Day 22:32)
         Made findNeighbors a boolean which returns whether a neighbor was found (23:40)
         Added a test to ensure that the program doesn't think that a word neighbors itself (15 Mar 2023 0:14)
+    Restructured this and Levenshtein so that findNeighbors returns a Set of neighboring nodes instead of stings
+        and accepts lengthStartIndexes instead of the start and end index. Makes everything easier to read (16 Mar 2023 10:13)
 */
 
 import java.util.*;
 
 public class LevenshteinNode {
     private String word;
-    private Set<String> neighbors;
     public static void main(String[] args) {
         LevenshteinNode temp = new LevenshteinNode("monkey");
         System.out.println(temp.isNeighboring("money"));
@@ -68,25 +69,27 @@ public class LevenshteinNode {
      */
     public LevenshteinNode(String word) {
         this.word = word;
-        neighbors = new HashSet<>();
     }
 
     /**
-     * Adds all neighbors from the dictionary to neighbors. Return true if a neighbor was found, and false otherwise.
+     * Adds all neighbors from the dictionary to a HashSet of neighbors and returns it.
+     * Uses lengthStartIndexes to reduce the scope of the dictionary that is searched, since no words that have a
+     * length difference of more than two can possibly be neighboring.
      * @param dictionary Dictionary to use.
-     * @param startIndex Index to start checking for neighbors.
-     * @param endIndex Index to stop checking for neighbors.
-     * @return If a neighbor was found.
+     * @param lengthStartIndexes Map whose key is a word length and value is the first index of a word with that
+     *                           length in dictionary.
+     * @return HashSet of neighboring nodes.
      */
-    public boolean findNeighbors(List<String> dictionary, int startIndex, int endIndex) {
-        boolean foundNeighbor = false;
+    public Set<LevenshteinNode> findNeighbors(List<String> dictionary, Map<Integer, Integer> lengthStartIndexes) {
+        Set<LevenshteinNode> neighbors = new HashSet<>();
+        int startIndex = lengthStartIndexes.getOrDefault(this.word.length() - 1, 0);
+        int endIndex = lengthStartIndexes.getOrDefault(this.word.length() + 2, dictionary.size());
         for (int i = startIndex; i < endIndex; i++) {
             if (this.isNeighboring(dictionary.get(i))) {
-                foundNeighbor = true;
-                this.neighbors.add(dictionary.get(i));
+                neighbors.add(new LevenshteinNode(dictionary.get(i)));
             }
         }
-        return foundNeighbor;
+        return neighbors;
     }
 
     /**
@@ -128,20 +131,6 @@ public class LevenshteinNode {
     /** Returns the word this node represents. */
     public String getWord() {
         return word;
-    }
-
-    /** Returns a set of the values of neighbors. */
-    public Set<String> getNeighbors() {
-        return neighbors;
-    }
-
-    /**
-     * Adds a neighboring word to the list of neighbors.
-     * NOTE: This does not check to see if these words are actually neighboring.
-     * @param n Neighboring word to add, must actually be neighboring.
-     */
-    public void addNeighbor(String n) {
-        neighbors.add(n);
     }
 
     /** @return "[word] - [neighbors]" */
