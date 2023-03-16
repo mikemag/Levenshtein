@@ -13,6 +13,7 @@ Maintenance Log:
 
 import java.io.*;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class Levenshtein {
     public final ArrayList<String> dictionary;
@@ -43,12 +44,18 @@ public class Levenshtein {
         LinkedList<HashSet<LevenshteinNode>> currentGraph = g1;
         LinkedList<HashSet<LevenshteinNode>> otherGraph = g2;
         while (!intersects(g1.getLast(), g2.getLast())) {
-            HashSet<LevenshteinNode> neighborsToAdd = new HashSet<>();
+            TreeSet<LevenshteinNode> neighborsToAdd = new TreeSet<>();
             for (LevenshteinNode n : currentGraph.getLast()) {
                 Set<LevenshteinNode> nNeighbors = n.findNeighbors(dictionary, lengthStartIndexes);
                 if (!nNeighbors.isEmpty()) {
                     for (LevenshteinNode nNeighbor: nNeighbors) {
                         if (!graphContains(currentGraph, nNeighbor)) {
+                            if (neighborsToAdd.contains(nNeighbor)) {
+                                neighborsToAdd.floor(nNeighbor).addPrevious(nNeighbor);
+                                //LevenshteinNode temp = neighborsToAdd.stream().filter(Predicate.isEqual(nNeighbor)).findFirst().get();
+                                //temp.addPrevious(nNeighbor);
+                                //System.out.println(temp);
+                            }
                             neighborsToAdd.add(nNeighbor);
                         }
                     }
@@ -57,7 +64,8 @@ public class Levenshtein {
             if (neighborsToAdd.isEmpty()) {
                 return -1;
             }
-            currentGraph.add(neighborsToAdd);
+            System.out.println(neighborsToAdd);
+            currentGraph.add(new HashSet(neighborsToAdd));
             LinkedList<HashSet<LevenshteinNode>> temp = currentGraph;
             currentGraph = otherGraph;
             otherGraph = temp;

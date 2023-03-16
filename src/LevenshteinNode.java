@@ -18,8 +18,10 @@ Maintenance Log:
 
 import java.util.*;
 
-public class LevenshteinNode {
-    private String word;
+public class LevenshteinNode implements Comparable<LevenshteinNode> {
+    private final String word;
+    private HashSet<LevenshteinNode> previous;
+    private HashSet<LevenshteinNode> next;
     public static void main(String[] args) {
         LevenshteinNode temp = new LevenshteinNode("monkey");
         System.out.println(temp.isNeighboring("money"));
@@ -64,11 +66,24 @@ public class LevenshteinNode {
     }
 
     /**
-     * Constructs with this word initialized to word, this layer set to layer and neighbors initialized as empty.
+     * Constructs with this node with word initialized to word, and previous and next empty.
      * @param word Value to initialize word to.
      */
     public LevenshteinNode(String word) {
         this.word = word;
+        previous = new HashSet<>();
+        next = new HashSet<>();
+    }
+
+    /**
+     * Constructs with this node with word initialized to word, and next empty, and previous containing the previous node.
+     * @param word Value to initialize word to.
+     * @param previous Node to initialize previous with.
+     */
+    public LevenshteinNode(String word, LevenshteinNode previous) {
+        this.word = word;
+        this.previous = new HashSet<>(Arrays.asList(previous));
+        next = new HashSet<>();
     }
 
     /**
@@ -86,7 +101,7 @@ public class LevenshteinNode {
         int endIndex = lengthStartIndexes.getOrDefault(this.word.length() + 2, dictionary.size());
         for (int i = startIndex; i < endIndex; i++) {
             if (this.isNeighboring(dictionary.get(i))) {
-                neighbors.add(new LevenshteinNode(dictionary.get(i)));
+                neighbors.add(new LevenshteinNode(dictionary.get(i), this));
             }
         }
         return neighbors;
@@ -111,7 +126,7 @@ public class LevenshteinNode {
             if (this.word.charAt(i) == w.charAt(wIndex)) {
                 wIndex++;
             } else {
-                if (foundDifference == true) {
+                if (foundDifference) {
                     return false;
                 } else {
                     foundDifference = true;
@@ -128,6 +143,11 @@ public class LevenshteinNode {
         return true;
     }
 
+    /** @param previous Node to add to this previous. */
+    public void addPrevious(LevenshteinNode previous) {
+        this.previous.add(previous);
+    }
+
     /** Returns the word this node represents. */
     public String getWord() {
         return word;
@@ -135,20 +155,17 @@ public class LevenshteinNode {
 
     /** @return "[word] - [neighbors]" */
     public String toString() {
-        return word;
+        return word + " - " + previous.size();
     }
 
-    /**
-     * Returns true if the objects are equal, or if the other object is a LevenshteinNode and the words of both are equal.
-     * @param o Other object.
-     * @return Whether the objects are equal.
-     */
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        LevenshteinNode node = (LevenshteinNode) o;
-        return Objects.equals(word, node.word);
+    public int compareTo(LevenshteinNode o) {
+        try {
+            return this.word.compareTo(((LevenshteinNode) o).word);
+        } catch (Exception e) {
+            System.out.println(this + " is not the same type as " + o + "(" + o + "is a " + o.getClass() + ")");
+            return -1;
+        }
     }
 
     /** @return Hashcode of the internal word. */
