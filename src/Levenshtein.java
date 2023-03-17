@@ -16,8 +16,8 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class Levenshtein {
-    public final ArrayList<String> dictionary;
-    public final Map<Integer, Integer> lengthStartIndexes;
+    private final ArrayList<LevenshteinNode> dictionary;
+    private final Map<Integer, Integer> lengthStartIndexes;
     public Levenshtein(String filename) throws FileNotFoundException {
         dictionary = new ArrayList<>();
         lengthStartIndexes = new HashMap<>();
@@ -25,7 +25,7 @@ public class Levenshtein {
         int i = 0;
         while (s.hasNext()) {
             String word = s.next();
-            dictionary.add(word);
+            dictionary.add(new LevenshteinNode(word));
             lengthStartIndexes.putIfAbsent(word.length(), i);
             i++;
         }
@@ -33,44 +33,53 @@ public class Levenshtein {
     public static void main(String[] args) throws FileNotFoundException {
         long time1 = System.nanoTime();
         Levenshtein test = new Levenshtein("src/Dictionary.txt");
-        System.out.println("Distance between 'monkey' and 'business': " + test.findDistance("monkey", "business", time1));
+        String w1 = "monkey";
+        String w2 = "business";
+        System.out.println("Distance between '" + w1 + "' and '" + w2 + "': " + test.findDistance(w1, w2, time1));
         System.out.println((System.nanoTime() - time1) / 1000000);
     }
     public int findDistance(String w1, String w2, long time1) {
-        LinkedList<HashSet<LevenshteinNode>> g1 = new LinkedList<>();
-        LinkedList<HashSet<LevenshteinNode>> g2 = new LinkedList<>();
-        g1.add(new HashSet<>(Arrays.asList(new LevenshteinNode(w1))));
-        g2.add(new HashSet<>(Arrays.asList(new LevenshteinNode(w2))));
-        LinkedList<HashSet<LevenshteinNode>> currentGraph = g1;
-        LinkedList<HashSet<LevenshteinNode>> otherGraph = g2;
-        while (!intersects(g1.getLast(), g2.getLast())) {
-            TreeSet<LevenshteinNode> neighborsToAdd = new TreeSet<>();
-            for (LevenshteinNode n : currentGraph.getLast()) {
-                Set<LevenshteinNode> nNeighbors = n.findNeighbors(dictionary, lengthStartIndexes);
+        LevenshteinNode[] nodeStorage = new LevenshteinNode[dictionary.size()];
+        nodeStorage = dictionary.toArray(nodeStorage);
+        HashSet<LevenshteinNode> g1 = new HashSet<>();
+        HashSet<LevenshteinNode> g2 = new HashSet<>();
+        HashSet<LevenshteinNode> g1Outer = new HashSet<>(Arrays.asList(new LevenshteinNode(w1)));
+        HashSet<LevenshteinNode> g2Outer = new HashSet<>(Arrays.asList(new LevenshteinNode(w2)));
+        HashSet<LevenshteinNode> currentGraph = g1;
+        HashSet<LevenshteinNode> otherGraph = g2;
+        HashSet<LevenshteinNode> currentOuter = g1Outer;
+        HashSet<LevenshteinNode> otherOuter = g2Outer;
+        while (!intersects(g1Outer, g2Outer)) {
+            HashSet<LevenshteinNode> currentNeoOuter = new HashSet<>();
+            for (LevenshteinNode n : currentOuter) {
+                Set<LevenshteinNode> nNeighbors = n.findNeighbors(nodeStorage, lengthStartIndexes);
                 if (!nNeighbors.isEmpty()) {
                     for (LevenshteinNode nNeighbor: nNeighbors) {
-                        if (!graphContains(currentGraph, nNeighbor)) {
-                            if (neighborsToAdd.contains(nNeighbor)) {
-                                neighborsToAdd.floor(nNeighbor).addPrevious(nNeighbor);
-                                //LevenshteinNode temp = neighborsToAdd.stream().filter(Predicate.isEqual(nNeighbor)).findFirst().get();
-                                //temp.addPrevious(nNeighbor);
-                                //System.out.println(temp);
+                        if (currentOuter.contains(nNeighbor)) {
+                            if (currentNeoOuter.contains(nNeighbor)) {
+                                nNeighbor.addPrevious(n);
+                            } else {
+                                currentNeoOuter.add(nNeighbor);
                             }
-                            neighborsToAdd.add(nNeighbor);
                         }
                     }
                 }
             }
-            if (neighborsToAdd.isEmpty()) {
+            if (currentNeoOuter.isEmpty()) {
                 return -1;
             }
-            System.out.println(neighborsToAdd);
-            currentGraph.add(new HashSet(neighborsToAdd));
-            LinkedList<HashSet<LevenshteinNode>> temp = currentGraph;
+            System.out.println(currentNeoOuter);
+            currentGraph.addAll(currentOuter);
+            currentOuter.clear();
+            currentOuter.addAll(currentNeoOuter);
+            HashSet<LevenshteinNode> temp = currentGraph;
             currentGraph = otherGraph;
             otherGraph = temp;
-            System.out.println("Graph 1 Size: " + graphSize(g1));
-            System.out.println("Graph 2 Size: " + graphSize(g2));
+            HashSet<LevenshteinNode> temp2 = currentOuter;
+            currentOuter = otherOuter;
+            otherOuter = temp2;
+            System.out.println("Graph 1 Size: " + g1.size());
+            System.out.println("Graph 2 Size: " + g2.size());
             System.out.println((System.nanoTime() - time1) / 1000000);
         }
         return g1.size() + g2.size() - 2;
@@ -109,20 +118,5 @@ public class Levenshtein {
             }
         }
         return false;
-    }
-    public boolean graphContains(LinkedList<HashSet<LevenshteinNode>> g, LevenshteinNode n) {
-        for(HashSet<LevenshteinNode> hs : g) {
-            if (hs.contains(n)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    public int graphSize(LinkedList<HashSet<LevenshteinNode>> g) {
-        int size = 0;
-        for (HashSet<LevenshteinNode> hs : g) {
-            size += hs.size();
-        }
-        return size;
     }
 }

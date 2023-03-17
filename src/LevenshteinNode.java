@@ -22,48 +22,6 @@ public class LevenshteinNode implements Comparable<LevenshteinNode> {
     private final String word;
     private HashSet<LevenshteinNode> previous;
     private HashSet<LevenshteinNode> next;
-    public static void main(String[] args) {
-        LevenshteinNode temp = new LevenshteinNode("monkey");
-        System.out.println(temp.isNeighboring("money"));
-        LevenshteinNode temp2 = new LevenshteinNode("money");
-        System.out.println(temp2.isNeighboring("coney"));
-        LevenshteinNode temp3 = new LevenshteinNode("coney");
-        System.out.println(temp3.isNeighboring("cones"));
-        LevenshteinNode temp4 = new LevenshteinNode("cones");
-        System.out.println(temp4.isNeighboring("cines"));
-        LevenshteinNode temp5 = new LevenshteinNode("cines");
-        System.out.println(temp5.isNeighboring("chines"));
-        LevenshteinNode temp6 = new LevenshteinNode("chines");
-        System.out.println(temp6.isNeighboring("chinese"));
-        LevenshteinNode temp7 = new LevenshteinNode("chinese");
-        System.out.println(temp7.isNeighboring("achinese"));
-        LevenshteinNode temp8 = new LevenshteinNode("achinese");
-        System.out.println(temp8.isNeighboring("achiness"));
-        LevenshteinNode temp9 = new LevenshteinNode("achiness");
-        System.out.println(temp9.isNeighboring("ashiness"));
-        LevenshteinNode temp10 = new LevenshteinNode("ashiness");
-        System.out.println(temp10.isNeighboring("mashiness"));
-        LevenshteinNode temp11 = new LevenshteinNode("mashiness");
-        System.out.println(temp11.isNeighboring("mushiness"));
-        LevenshteinNode temp12 = new LevenshteinNode("mushiness");
-        System.out.println(temp12.isNeighboring("bushiness"));
-        LevenshteinNode temp13 = new LevenshteinNode("bushiness");
-        System.out.println(temp13.isNeighboring("business"));
-        LevenshteinNode temp14 = new LevenshteinNode("business");
-        System.out.println(temp14.isNeighboring("bushiness"));
-        System.out.println(temp13.isNeighboring("mushiness"));
-        System.out.println(temp12.isNeighboring("mashiness"));
-        System.out.println(temp11.isNeighboring("ashiness"));
-        System.out.println(temp10.isNeighboring("achiness"));
-        System.out.println(temp9.isNeighboring("achinese"));
-        System.out.println(temp8.isNeighboring("chinese"));
-        System.out.println(temp7.isNeighboring("chines"));
-        System.out.println(temp6.isNeighboring("cines"));
-        System.out.println(temp5.isNeighboring("cones"));
-        System.out.println(temp4.isNeighboring("coney"));
-        System.out.println(temp3.isNeighboring("money"));
-        System.out.println(temp2.isNeighboring("monkey"));
-    }
 
     /**
      * Constructs with this node with word initialized to word, and previous and next empty.
@@ -95,28 +53,30 @@ public class LevenshteinNode implements Comparable<LevenshteinNode> {
      *                           length in dictionary.
      * @return HashSet of neighboring nodes.
      */
-    public Set<LevenshteinNode> findNeighbors(List<String> dictionary, Map<Integer, Integer> lengthStartIndexes) {
+    public Set<LevenshteinNode> findNeighbors(LevenshteinNode[] dictionary, Map<Integer, Integer> lengthStartIndexes) {
         Set<LevenshteinNode> neighbors = new HashSet<>();
         int startIndex = lengthStartIndexes.getOrDefault(this.word.length() - 1, 0);
-        int endIndex = lengthStartIndexes.getOrDefault(this.word.length() + 2, dictionary.size());
+        int endIndex = lengthStartIndexes.getOrDefault(this.word.length() + 2, dictionary.length);
         for (int i = startIndex; i < endIndex; i++) {
-            if (this.isNeighboring(dictionary.get(i))) {
-                neighbors.add(new LevenshteinNode(dictionary.get(i), this));
+            if (this.isNeighboring(dictionary[i])) {
+                dictionary[i].addPrevious(this);
+                neighbors.add(dictionary[i]);
             }
         }
         return neighbors;
     }
 
     /**
-     * Determines if this word is "neighboring" w (If a single addition, removal, or change of letters will result in w).
+     * Determines if this word is "neighboring" n (If a single addition, removal, or change of letters will result in w).
      * It does this by checking to see if both words share all but one letter, and these letters are in the same order in each word.
-     * It can determine this by traversing this word and comparing the current letter to the front of w.
+     * It can determine this by traversing this word and comparing the current letter to the front of n.
      * The front of w is pushed back if the letter comparison evaluates true or if the front letter does not need to be checked again.
      * This allows this method to have a worst-case big-O of O(n).
-     * @param w Word to compare to, the distance between the lengths of these words must not be more than 1.
-     * @return Whether this is neighboring w.
+     * @param n Word to compare to, the distance between the lengths of these words must not be more than 1.
+     * @return Whether this is neighboring n.
      */
-    private boolean isNeighboring(String w) {
+    private boolean isNeighboring(LevenshteinNode n) {
+        String w = n.getWord();
         if (this.word.equals(w)) {
             return false;
         }
@@ -158,14 +118,10 @@ public class LevenshteinNode implements Comparable<LevenshteinNode> {
         return word + " - " + previous.size();
     }
 
+    /** @return Output from calling compareTo between the two words. */
     @Override
     public int compareTo(LevenshteinNode o) {
-        try {
-            return this.word.compareTo(((LevenshteinNode) o).word);
-        } catch (Exception e) {
-            System.out.println(this + " is not the same type as " + o + "(" + o + "is a " + o.getClass() + ")");
-            return -1;
-        }
+        return this.word.compareTo(o.word);
     }
 
     /** @return Hashcode of the internal word. */
