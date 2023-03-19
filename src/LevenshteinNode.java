@@ -20,8 +20,7 @@ import java.util.*;
 
 public class LevenshteinNode implements Comparable<LevenshteinNode> {
     private final String word;
-    private HashSet<LevenshteinNode> previous;
-    private HashSet<LevenshteinNode> next;
+    private ArrayList<LevenshteinNode> previous;
 
     /**
      * Constructs with this node with word initialized to word, and previous and next empty.
@@ -29,36 +28,25 @@ public class LevenshteinNode implements Comparable<LevenshteinNode> {
      */
     public LevenshteinNode(String word) {
         this.word = word;
-        previous = new HashSet<>();
-        next = new HashSet<>();
-    }
-
-    /**
-     * Constructs with this node with word initialized to word, and next empty, and previous containing the previous node.
-     * @param word Value to initialize word to.
-     * @param previous Node to initialize previous with.
-     */
-    public LevenshteinNode(String word, LevenshteinNode previous) {
-        this.word = word;
-        this.previous = new HashSet<>(Arrays.asList(previous));
-        next = new HashSet<>();
+        previous = new ArrayList<>();
     }
 
     /**
      * Adds all neighbors from the dictionary to a HashSet of neighbors and returns it.
      * Uses lengthStartIndexes to reduce the scope of the dictionary that is searched, since no words that have a
      * length difference of more than two can possibly be neighboring.
+     * Also uses ignore to reduce the scope of the neighbors returned, as there is no reason to check neighbors
+     * that have already been searched in Levenshtein
      * @param dictionary Dictionary to use.
      * @param lengthStartIndexes Map whose key is a word length and value is the first index of a word with that
      *                           length in dictionary.
      * @return HashSet of neighboring nodes.
      */
-    public Set<LevenshteinNode> findNeighbors(LevenshteinNode[] dictionary, Map<Integer, Integer> lengthStartIndexes) {
-        Set<LevenshteinNode> neighbors = new HashSet<>();
-        int startIndex = lengthStartIndexes.getOrDefault(this.word.length() - 1, 0);
+    public HashSet<LevenshteinNode> findNeighbors(LevenshteinNode[] dictionary, Map<Integer, Integer> lengthStartIndexes, HashSet<LevenshteinNode> ignore1, HashSet<LevenshteinNode> ignore2) {
+        HashSet<LevenshteinNode> neighbors = new HashSet<>();
         int endIndex = lengthStartIndexes.getOrDefault(this.word.length() + 2, dictionary.length);
-        for (int i = startIndex; i < endIndex; i++) {
-            if (this.isNeighboring(dictionary[i])) {
+        for (int i = lengthStartIndexes.getOrDefault(this.word.length() - 1, 0); i < endIndex; i++) {
+            if (this.isNeighboring(dictionary[i]) && !ignore2.contains(dictionary[i]) && !ignore1.contains(dictionary[i])) {
                 dictionary[i].addPrevious(this);
                 neighbors.add(dictionary[i]);
             }
@@ -113,7 +101,13 @@ public class LevenshteinNode implements Comparable<LevenshteinNode> {
         return word;
     }
 
-    /** @return "[word] - [neighbors]" */
+    /** @return HashSet of previous words */
+    public ArrayList<LevenshteinNode> getPrevious() {
+        return previous;
+    }
+
+    /** @return "[word] - [list of previous]" */
+
     public String toString() {
         return word + " - " + previous.size();
     }
