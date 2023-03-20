@@ -53,27 +53,45 @@ public class LevenshteinNode implements Comparable<LevenshteinNode> {
      * @return Whether this is neighboring n.
      */
     protected boolean isNeighboring(LevenshteinNode n) {
-        String w = n.getWord();
-        if (this.word.equals(w)) {
+        String w1 = this.word;
+        String w2 = n.word;
+
+        /*if (w1.equals(w2)) {
             return false;
-        }
+        }*/
+        int w1l = w1.length();
+        int w2l = w2.length();
+        int lengthDifference = w1l - w2l;
         boolean foundDifference = false;
-        int wIndex = 0;
-        for (int i = 0; i < this.word.length() && wIndex < w.length(); i++) {
-            if (this.word.charAt(i) == w.charAt(wIndex)) {
-                wIndex++;
-            } else {
+
+        if (lengthDifference == 0) {
+            for (int i = 0; i < w1l; i++) {
+                if (w1.charAt(i) != w2.charAt(i)) {
+                    if (foundDifference) {
+                        return false;
+                    } else {
+                        foundDifference = true;
+                    }
+                }
+            }
+            return foundDifference;
+        }
+
+        if (lengthDifference > 0) {
+            String t = w2;
+            w2 = w1;
+            w1 = t;
+            w1l = w2l;
+        }
+
+        int w2Index = 0;
+        for (int i = 0; i < w1l; i++, w2Index++) {
+            if (w1.charAt(i) != w2.charAt(w2Index)) {
                 if (foundDifference) {
                     return false;
                 } else {
                     foundDifference = true;
-                    int lengthDifference = this.word.length() - w.length();
-                    if (lengthDifference < 0) {
-                        wIndex++;
-                        i--;
-                    } else if (lengthDifference == 0) {
-                        wIndex++;
-                    }
+                    i--;
                 }
             }
         }

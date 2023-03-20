@@ -36,8 +36,8 @@ public class LevenshteinSingleSided extends Levenshtein {
     public static void main(String[] args) throws IOException {
         Levenshtein test = new LevenshteinSingleSided("src/Dictionary.txt");
         long time1 = System.nanoTime();
-        String w1 = "business";
-        String w2 = "monkey";
+        String w1 = "hello";
+        String w2 = "temporary";
         List<String> paths = test.getAllPaths(w1, w2);
         for (String p : paths) {
             System.out.println(p);
@@ -50,6 +50,7 @@ public class LevenshteinSingleSided extends Levenshtein {
         }
         System.out.println("Distance between '" + w1 + "' and '" + w2 + "': " + distance);
         System.out.println((System.nanoTime() - time1) / 1000000);
+        //TODO: Add mergesort
     }
 
     /**
