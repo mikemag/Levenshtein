@@ -11,22 +11,22 @@ Maintenance Log:
     It now finds monkey -> business in 25 seconds, using the LinkedList of HashSets to store each layer (15 Mar 2023 10:57)
     Restructuring how the data is stored to allow it to find all paths. Changing a HashMap to a TreeMap caused it to break (16 Mar 2023 10:55)
     Now takes about 13 seconds to go from business to monkey, assuming the words are fed in the correct order (17 Mar 2023 15:25)
-    Renamed to "LevenshteinOneSided.java" (19 Mar 2023 17:02)
+    Renamed to "LevenshteinSingleSided.java" (19 Mar 2023 17:02)
+    LevenshteinOneSided now finds both the path between nodes and length, but is still a normally worse algorithm than LevenshteinDualSided (20 Mar 2023 1:12)
 */
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 
-public class LevenshteinOneSided extends Levenshtein<LevenshteinNodePrevOnly> {
-    public LevenshteinOneSided(String filename) throws IOException {
-        super(new LevenshteinNodePrevOnly[(int) Files.lines(Paths.get("src/Dictionary.txt")).count()], new HashMap<>());
+public class LevenshteinSingleSided extends Levenshtein {
+    public LevenshteinSingleSided(String filename) throws IOException {
+        super(new LevenshteinNode[(int) Files.lines(Paths.get("src/Dictionary.txt")).count()], new HashMap<>());
         Scanner s = new Scanner(new File(filename));
         int i = 0;
         while (s.hasNext()) {
             String word = s.next();
-            dictionary[i] = new LevenshteinNodePrevOnly(word);
+            dictionary[i] = new LevenshteinNode(word);
             lengthStartIndexes.putIfAbsent(word.length(), i);
             i++;
         }
@@ -34,7 +34,7 @@ public class LevenshteinOneSided extends Levenshtein<LevenshteinNodePrevOnly> {
 
     /** This is just for testing. */
     public static void main(String[] args) throws IOException {
-        Levenshtein test = new LevenshteinOneSided("src/Dictionary.txt");
+        Levenshtein test = new LevenshteinSingleSided("src/Dictionary.txt");
         long time1 = System.nanoTime();
         String w1 = "business";
         String w2 = "monkey";
@@ -61,16 +61,16 @@ public class LevenshteinOneSided extends Levenshtein<LevenshteinNodePrevOnly> {
      *         This only generates the information required to find the paths - It does not directly tell you what the paths are.
      */
     @Override
-    protected LevenshteinNodePrevOnly[] generatePaths(String w1, String w2, long startTime) {
-        LevenshteinNodePrevOnly[] nodeStorage = Arrays.copyOf(dictionary, dictionary.length);
-        HashSet<LevenshteinNodePrevOnly> searched = new HashSet<>();
-        HashSet<LevenshteinNodePrevOnly> outer = new HashSet<>(Arrays.asList((LevenshteinNodePrevOnly)Levenshtein.binarySearch(nodeStorage, w1)));
-        LevenshteinNodePrevOnly endWord = (LevenshteinNodePrevOnly)Levenshtein.binarySearch(nodeStorage, w2);
+    protected LevenshteinNode[] generatePaths(String w1, String w2, long startTime) {
+        LevenshteinNode[] nodeStorage = Arrays.copyOf(dictionary, dictionary.length);
+        HashSet<LevenshteinNode> searched = new HashSet<>();
+        HashSet<LevenshteinNode> outer = new HashSet<>(Arrays.asList(Levenshtein.binarySearch(nodeStorage, w1)));
+        LevenshteinNode endWord = Levenshtein.binarySearch(nodeStorage, w2);
         while (!outer.contains(endWord)) {
-            HashSet<LevenshteinNodePrevOnly> newOuter = new HashSet<>();
-            for (LevenshteinNodePrevOnly n : outer) {
-                HashSet<LevenshteinNodePrevOnly> neighbors = n.findNeighbors(nodeStorage, lengthStartIndexes, searched, outer);
-                for (LevenshteinNodePrevOnly neighbor: neighbors) {
+            HashSet<LevenshteinNode> newOuter = new HashSet<>();
+            for (LevenshteinNode n : outer) {
+                HashSet<LevenshteinNode> neighbors = n.findNeighbors(nodeStorage, lengthStartIndexes, searched, outer);
+                for (LevenshteinNode neighbor: neighbors) {
                     if (newOuter.contains(neighbor)) {
                         neighbor.addPrevious(n);
                     } else {
@@ -102,10 +102,10 @@ public class LevenshteinOneSided extends Levenshtein<LevenshteinNodePrevOnly> {
      */
     @Override
     public int getDistance(String w1, String w2) {
-        LevenshteinNodePrevOnly[] pathsRevealed = generatePaths(w1, w2, System.nanoTime());
-        return getDistance((LevenshteinNodePrevOnly)Levenshtein.binarySearch(pathsRevealed, w2));
+        LevenshteinNode[] pathsRevealed = generatePaths(w1, w2, System.nanoTime());
+        return getDistance(Levenshtein.binarySearch(pathsRevealed, w2));
     }
-    private int getDistance(LevenshteinNodePrevOnly n) {
+    private int getDistance(LevenshteinNode n) {
         if (n.getPrevious().size() == 0) {
             return 0;
         } else {
@@ -125,19 +125,19 @@ public class LevenshteinOneSided extends Levenshtein<LevenshteinNodePrevOnly> {
      */
     @Override
     public List<String> getAllPaths(String w1, String w2) {
-        LevenshteinNodePrevOnly[] pathsRevealed = generatePaths(w1, w2, System.nanoTime());
-        LevenshteinNodePrevOnly n = (LevenshteinNodePrevOnly)Levenshtein.binarySearch(pathsRevealed, w2);
+        LevenshteinNode[] pathsRevealed = generatePaths(w1, w2, System.nanoTime());
+        LevenshteinNode n = Levenshtein.binarySearch(pathsRevealed, w2);
         List<String> paths = new ArrayList<>();
-        for (LevenshteinNodePrevOnly prev : n.getPrevious()) {
+        for (LevenshteinNode prev : n.getPrevious()) {
             getAllPaths(prev, "-> " + n.getWord(), paths);
         }
         return paths;
     }
-    private void getAllPaths(LevenshteinNodePrevOnly n, String after, List<String> paths) {
+    private void getAllPaths(LevenshteinNode n, String after, List<String> paths) {
         if (n.getPrevious().size() == 0) {
             paths.add(n.getWord() + after);
         } else {
-            for (LevenshteinNodePrevOnly prev : n.getPrevious()) {
+            for (LevenshteinNode prev : n.getPrevious()) {
                 getAllPaths(prev, "-> " + n.getWord() + after, paths);
             }
         }

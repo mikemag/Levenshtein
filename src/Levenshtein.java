@@ -9,15 +9,15 @@ Maintenance Log:
 
 import java.util.*;
 
-public abstract class Levenshtein<T extends LevenshteinNode> {
+public abstract class Levenshtein {
     /** Set to true to display extra text for debugging. */
-    protected static final boolean PRINT_EXTRA = false;
+    protected static final boolean PRINT_EXTRA = true;
 
     /**
      * Dictionary of words, which is read from a file and stored as an array of LevenshteinNodes with previous being empty.
      * This allows for each call of generatePaths to add.
      */
-    protected final T[] dictionary;
+    protected final LevenshteinNode[] dictionary;
 
     /**
      * The key represents the length of a word, and the value is the first index in dictionary of a word of that length.
@@ -29,7 +29,7 @@ public abstract class Levenshtein<T extends LevenshteinNode> {
      * @param dictionary Value to set this dictionary to.
      * @param lengthStartIndexes Value to set this lengthStartIndexes to.
      */
-    protected Levenshtein(T[] dictionary, Map<Integer, Integer> lengthStartIndexes) {
+    protected Levenshtein(LevenshteinNode[] dictionary, Map<Integer, Integer> lengthStartIndexes) {
         this.dictionary = dictionary;
         this.lengthStartIndexes = lengthStartIndexes;
     }
@@ -41,7 +41,7 @@ public abstract class Levenshtein<T extends LevenshteinNode> {
      * @return An array which contains a modified version of dictionary with every path between the words found and appropriate pointers stored in each node.
      *         This only generates the information required to find the paths - It does not directly tell you what the paths are.
      */
-    protected abstract T[] generatePaths(String w1, String w2, long startTime);
+    protected abstract LevenshteinNode[] generatePaths(String w1, String w2, long startTime);
 
     /**
      * @param w1 Starting word.
@@ -76,7 +76,6 @@ public abstract class Levenshtein<T extends LevenshteinNode> {
      * @param a Array to search. Must be sorted in the natural sorting order of Strings.
      * @param w Word to search for. Must not override compareTo.
      * @return The pointer to the node that corresponds to w in a.
-     * @throws Exception Throws if w is not found in array.
      */
     public static LevenshteinNode binarySearch(LevenshteinNode[] a, String w) {
         return binarySearch(a, w, 0, a.length);
@@ -84,18 +83,15 @@ public abstract class Levenshtein<T extends LevenshteinNode> {
     private static LevenshteinNode binarySearch(LevenshteinNode[] a, String w, int min, int max) {
         int average = (min + max) / 2 + (min + max) % 2;
         int c = SORTED_BY_LENGTH.compare(a[average].getWord(), w);
-        if (max - min != 2) {
-            System.out.println(max - min);
-            System.out.println(a[average].getWord());
+        if (c == 0) {
+            return a[average];
+        } else if (max - min != 1) {
             if (c > 0) {
                 return binarySearch(a, w, min, average);
             } else {
                 return binarySearch(a, w, average, max);
             }
         } else {
-            if (c == 0) {
-                return a[average];
-            }
             System.out.println(w + " does not exist in the provided array.");
             System.out.println("Last test word: " + a[average].getWord());
             return null;
