@@ -13,6 +13,7 @@ Maintenance Log:
     Now takes about 13 seconds to go from business to monkey, assuming the words are fed in the correct order (17 Mar 2023 15:25)
     Renamed to "LevenshteinSingleSided.java" (19 Mar 2023 17:02)
     LevenshteinOneSided now finds both the path between nodes and length, but is still a normally worse algorithm than LevenshteinDualSided (20 Mar 2023 1:12)
+    Converted the HashSets to HashMaps of Levenshtein Nodes with a String key (20 Mar 2023 20:54)
 */
 
 import java.io.*;
@@ -36,8 +37,8 @@ public class LevenshteinSingleSided extends Levenshtein {
     public static void main(String[] args) throws IOException {
         Levenshtein test = new LevenshteinSingleSided("src/Dictionary.txt");
         long time1 = System.nanoTime();
-        String w1 = "hello";
-        String w2 = "temporary";
+        String w1 = "dog";
+        String w2 = "cat";
         List<String> paths = test.getAllPaths(w1, w2);
         for (String p : paths) {
             System.out.println(p);
@@ -63,19 +64,19 @@ public class LevenshteinSingleSided extends Levenshtein {
      */
     @Override
     protected LevenshteinNode[] generatePaths(String w1, String w2, long startTime) {
-        LevenshteinNode[] nodeStorage = Arrays.copyOf(dictionary, dictionary.length);
-        HashSet<LevenshteinNode> searched = new HashSet<>();
-        HashSet<LevenshteinNode> outer = new HashSet<>(Arrays.asList(Levenshtein.binarySearch(nodeStorage, w1)));
-        LevenshteinNode endWord = Levenshtein.binarySearch(nodeStorage, w2);
-        while (!outer.contains(endWord)) {
-            HashSet<LevenshteinNode> newOuter = new HashSet<>();
-            for (LevenshteinNode n : outer) {
-                HashSet<LevenshteinNode> neighbors = n.findNeighbors(nodeStorage, lengthStartIndexes, searched, outer);
-                for (LevenshteinNode neighbor: neighbors) {
-                    if (newOuter.contains(neighbor)) {
+        HashMap<String, LevenshteinNode> searched = new HashMap<>();
+        HashMap<String, LevenshteinNode> outer = new HashMap<>();
+        outer.put(w1, new LevenshteinNode(w1));
+        LevenshteinNode endWord = new LevenshteinNode(w2);
+        while (!outer.keySet().contains(endWord.getWord())) {
+            HashMap<String, LevenshteinNode> newOuter = new HashMap<>();
+            for (LevenshteinNode n : outer.values()) {
+                HashSet<LevenshteinNode> neighbors = n.findNeighbors(dictionary, lengthStartIndexes, new HashSet<>(searched.values()), new HashSet<>(outer.values()));
+                for (LevenshteinNode neighbor : neighbors) {
+                    if (newOuter.keySet().contains(neighbor)) {
                         neighbor.addPrevious(n);
                     } else {
-                        newOuter.add(neighbor);
+                        newOuter.put(neighbor.getWord(), neighbor);
                     }
                 }
             }
@@ -87,10 +88,10 @@ public class LevenshteinSingleSided extends Levenshtein {
                 System.out.println("Searched Nodes: " + searched.size());
                 System.out.println((System.nanoTime() - startTime) / 1000000);
             }
-            searched.addAll(outer);
+            searched.putAll(outer);
             outer = newOuter;
         }
-        return nodeStorage;
+        return new LevenshteinNode[0];
     }
 
     /**
