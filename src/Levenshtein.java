@@ -70,6 +70,65 @@ public abstract class Levenshtein {
         }
     };
 
+    public HashMap<String, HashSet<String>> generateNewLayer(HashMap<String, HashSet<String>> outer, HashSet<String> ignoreList) {
+        HashMap<String, HashSet<String>> newOuter = new HashMap<>();
+        for (String w : outer.keySet()) {
+            //newOuter = findNeighbors(w, newOuter, ignoreList);
+        }
+        return newOuter;
+    }
+
+    /*public HashMap<String, HashSet<String>> findNeighbors(String w, HashMap<String, HashSet<String>> toAddTo, HashSet<String> ignoreList) {
+
+    }*/
+    public boolean areNeighboring(String w1, String w2) {
+        /*if (w1.equals(w2)) {
+            return false;
+        }*/
+
+        int w1l = w1.length();
+        int w2l = w2.length();
+        int lengthDifference = w1l - w2l;
+        boolean foundDifference = false;
+
+        // Checks to see if the words are neighboring if they are of the same length
+        if (lengthDifference == 0) {
+            for (int i = 0; i < w1l; i++) {
+                if (w1.charAt(i) != w2.charAt(i)) {
+                    if (foundDifference) {
+                        return false;
+                    } else {
+                        foundDifference = true;
+                    }
+                }
+            }
+            // If a difference was never found, the words are equal, and false is still returned
+            return foundDifference;
+        }
+
+        // Swaps the w1 and w2 if w1 is longer than w2, guaranteeing that w1 will be shorter after this
+        if (lengthDifference > 0) {
+            String t = w2;
+            w2 = w1;
+            w1 = t;
+            w1l = w2l;
+        }
+
+        // Checks to see if the words are neighboring if the first one is shorter than the second one
+        int w2Index = 0;
+        for (int i = 0; i < w1l; i++, w2Index++) {
+            if (w1.charAt(i) != w2.charAt(w2Index)) {
+                if (foundDifference) {
+                    return false;
+                } else {
+                    foundDifference = true;
+                    i--;
+                }
+            }
+        }
+        return true;
+    }
+
     /**
      * Uses a recursive implementation of binarySearch to find the index of w in a.
      * Used to get a pointer to an important word (Such as the start word, end word, or words required to trace paths).

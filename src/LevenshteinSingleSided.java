@@ -80,6 +80,7 @@ public class LevenshteinSingleSided extends Levenshtein {
                     }
                 }
             }
+            // If the outer layer is empty even after trying to generate it, no more progress can be made and there is no Levenshtein
             if (newOuter.isEmpty()) {
                break;
             }
