@@ -5,6 +5,8 @@ Filename: Levenshtein.java
 Maintenance Log:
     Started. Added all the necessary collection such as the dictionary and lengthStartIndexes, all abstract methods such as generatePaths,
         and also added a constructor and a static binary search method (19 Mar 2023 23:09)
+    Added methods to replace some of those in LevenshteinNode (22 Mar 2023 10:57)
+    Changed dictionary to contain Strings instead of LevenshteinNodes (23 Mar 2023 10:57)
 */
 
 import java.util.*;
@@ -17,7 +19,7 @@ public abstract class Levenshtein {
      * Dictionary of words, which is read from a file and stored as an array of LevenshteinNodes with previous being empty.
      * This allows for each call of generatePaths to add.
      */
-    protected final LevenshteinNode[] dictionary;
+    protected final String[] dictionary;
 
     /**
      * The key represents the length of a word, and the value is the first index in dictionary of a word of that length.
@@ -29,7 +31,7 @@ public abstract class Levenshtein {
      * @param dictionary Value to set this dictionary to.
      * @param lengthStartIndexes Value to set this lengthStartIndexes to.
      */
-    protected Levenshtein(LevenshteinNode[] dictionary, Map<Integer, Integer> lengthStartIndexes) {
+    protected Levenshtein(String[] dictionary, Map<Integer, Integer> lengthStartIndexes) {
         this.dictionary = dictionary;
         this.lengthStartIndexes = lengthStartIndexes;
     }
@@ -81,53 +83,6 @@ public abstract class Levenshtein {
     /*public HashMap<String, HashSet<String>> findNeighbors(String w, HashMap<String, HashSet<String>> toAddTo, HashSet<String> ignoreList) {
 
     }*/
-    public boolean areNeighboring(String w1, String w2) {
-        /*if (w1.equals(w2)) {
-            return false;
-        }*/
-
-        int w1l = w1.length();
-        int w2l = w2.length();
-        int lengthDifference = w1l - w2l;
-        boolean foundDifference = false;
-
-        // Checks to see if the words are neighboring if they are of the same length
-        if (lengthDifference == 0) {
-            for (int i = 0; i < w1l; i++) {
-                if (w1.charAt(i) != w2.charAt(i)) {
-                    if (foundDifference) {
-                        return false;
-                    } else {
-                        foundDifference = true;
-                    }
-                }
-            }
-            // If a difference was never found, the words are equal, and false is still returned
-            return foundDifference;
-        }
-
-        // Swaps the w1 and w2 if w1 is longer than w2, guaranteeing that w1 will be shorter after this
-        if (lengthDifference > 0) {
-            String t = w2;
-            w2 = w1;
-            w1 = t;
-            w1l = w2l;
-        }
-
-        // Checks to see if the words are neighboring if the first one is shorter than the second one
-        int w2Index = 0;
-        for (int i = 0; i < w1l; i++, w2Index++) {
-            if (w1.charAt(i) != w2.charAt(w2Index)) {
-                if (foundDifference) {
-                    return false;
-                } else {
-                    foundDifference = true;
-                    i--;
-                }
-            }
-        }
-        return true;
-    }
 
     /**
      * Uses a recursive implementation of binarySearch to find the index of w in a.
