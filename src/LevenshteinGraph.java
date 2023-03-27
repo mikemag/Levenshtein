@@ -4,6 +4,7 @@ Project: Levenshtein Distance (GS14-01)
 Filename: LevenshteinGraph.java
 Maintenance Log:
     Started. Added generateNewOuter, findNeighbors, areNeighboring, and outerIntersects (23 Mar 2023 10:56)
+    Changed outerIntersects to no longer be static and created outerContains for LevenshteinSingleSided (27 Mar 2023 10:40)
 */
 
 import java.util.*;
@@ -34,12 +35,10 @@ public class LevenshteinGraph {
     }
 
     public HashSet<String> findNeighbors(String w, String[] dictionary, Map<Integer, Integer> lengthStartIndexes) {
-        HashSet<String> ignore1 = (HashSet<String>)searched.keySet();
-        HashSet<String> ignore2 = (HashSet<String>)outer.keySet();
         HashSet<String> neighbors = new HashSet<>();
         int endIndex = lengthStartIndexes.getOrDefault(w.length() + 2, dictionary.length);
         for (int i = lengthStartIndexes.getOrDefault(w.length() - 1, 0); i < endIndex; i++) {
-            if (areNeighboring(w, dictionary[i]) && !ignore1.contains(dictionary[i]) && !ignore2.contains(dictionary[i])) {
+            if (areNeighboring(w, dictionary[i]) && !searched.containsKey(dictionary[i]) && !outer.containsKey(dictionary[i])) {
                 neighbors.add(dictionary[i]);
             }
         }
@@ -101,16 +100,20 @@ public class LevenshteinGraph {
         return true;
     }
 
-    public static boolean outerIntersects(LevenshteinGraph g1, LevenshteinGraph g2) {
-        HashSet<String> outerKeys1 = (HashSet<String>)g1.outer.keySet();
-        HashSet<String> outerKeys2 = (HashSet<String>)g2.outer.keySet();
-        if (outerKeys1.size() > outerKeys2.size()) {
-            HashSet<String> temp = outerKeys2;
-            outerKeys2 = outerKeys1;
-            outerKeys1 = temp;
+    public boolean outerContains(String w) {
+        return outer.containsKey(w);
+    }
+
+    public boolean outerIntersects(LevenshteinGraph g) {
+        HashMap<String, HashSet<String>> outerCopy = outer;
+        HashMap<String, HashSet<String>> otherOuter = g.outer;
+        if (outerCopy.keySet().size() > otherOuter.keySet().size()) {
+            HashMap<String, HashSet<String>> temp = otherOuter;
+            otherOuter = outerCopy;
+            outerCopy = temp;
         }
-        for (String w : outerKeys1) {
-            if (outerKeys2.contains(w)) {
+        for (String w : outerCopy.keySet()) {
+            if (otherOuter.containsKey(w)) {
                 return true;
             }
         }

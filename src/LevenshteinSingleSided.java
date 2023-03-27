@@ -14,6 +14,7 @@ Maintenance Log:
     Renamed to "LevenshteinSingleSided.java" (19 Mar 2023 17:02)
     LevenshteinOneSided now finds both the path between nodes and length, but is still a normally worse algorithm than LevenshteinDualSided (20 Mar 2023 1:12)
     Converted the HashSets to HashMaps of Levenshtein Nodes with a String key (20 Mar 2023 20:54)
+    Finished incorporating LevenshteinGraph and removing LevenshteinNode (27 Mar 2023 10:40)
 */
 
 import java.io.*;
@@ -22,12 +23,12 @@ import java.util.*;
 
 public class LevenshteinSingleSided extends Levenshtein {
     public LevenshteinSingleSided(String filename) throws IOException {
-        super(new LevenshteinNode[(int) Files.lines(Paths.get("src/Dictionary.txt")).count()], new HashMap<>());
+        super(new String[(int) Files.lines(Paths.get("src/Dictionary.txt")).count()], new HashMap<>());
         Scanner s = new Scanner(new File(filename));
         int i = 0;
         while (s.hasNext()) {
             String word = s.next();
-            dictionary[i] = new LevenshteinNode(word);
+            dictionary[i] = word;
             lengthStartIndexes.putIfAbsent(word.length(), i);
             i++;
         }
@@ -39,18 +40,8 @@ public class LevenshteinSingleSided extends Levenshtein {
         long time1 = System.nanoTime();
         String w1 = "dog";
         String w2 = "cat";
-        List<String> paths = test.getAllPaths(w1, w2);
-        for (String p : paths) {
-            System.out.println(p);
-        }
-        Scanner distanceScanner = new Scanner(paths.get(0));
-        int distance = -1;
-        while (distanceScanner.hasNext()) {
-            distanceScanner.next();
-            distance++;
-        }
-        System.out.println("Distance between '" + w1 + "' and '" + w2 + "': " + distance);
-        System.out.println((System.nanoTime() - time1) / 1000000);
+        test.generatePaths(w1, w2, time1);
+        System.out.println("Done in " + (System.nanoTime() - time1) / 1000000 + " milliseconds");
         //TODO: Add mergesort
     }
 
@@ -63,85 +54,19 @@ public class LevenshteinSingleSided extends Levenshtein {
      *         This only generates the information required to find the paths - It does not directly tell you what the paths are.
      */
     @Override
-    protected LevenshteinNode[] generatePaths(String w1, String w2, long startTime) {
-        HashMap<String, LevenshteinNode> searched = new HashMap<>();
-        HashMap<String, LevenshteinNode> outer = new HashMap<>();
-        outer.put(w1, new LevenshteinNode(w1));
-        LevenshteinNode endWord = new LevenshteinNode(w2);
-        while (!outer.keySet().contains(endWord.getWord())) {
-            HashMap<String, LevenshteinNode> newOuter = new HashMap<>();
-            for (LevenshteinNode n : outer.values()) {
-                HashSet<LevenshteinNode> neighbors = n.findNeighbors(dictionary, lengthStartIndexes, new HashSet<>(searched.values()), new HashSet<>(outer.values()));
-                for (LevenshteinNode neighbor : neighbors) {
-                    if (newOuter.keySet().contains(neighbor)) {
-                        neighbor.addPrevious(n);
-                    } else {
-                        newOuter.put(neighbor.getWord(), neighbor);
-                    }
-                }
-            }
-            // If the outer layer is empty even after trying to generate it, no more progress can be made and there is no Levenshtein
-            if (newOuter.isEmpty()) {
-               break;
+    protected ArrayList<ArrayList<String>> generatePaths(String w1, String w2, long startTime) {
+        LevenshteinGraph g = new LevenshteinGraph(w1);
+        while (true) {
+            int gOSize = g.outerSize();
+            System.out.println(gOSize);
+            g.generateNewOuter(dictionary, lengthStartIndexes);
+            if (gOSize == 0 || g.outerContains(w2)) {
+               return new ArrayList<>();
             }
             if (PRINT_EXTRA) {
-                System.out.println("\n" + outer);
-                System.out.println("Searched Nodes: " + searched.size());
-                System.out.println((System.nanoTime() - startTime) / 1000000);
-            }
-            searched.putAll(outer);
-            outer = newOuter;
-        }
-        return new LevenshteinNode[0];
-    }
-
-    /**
-     * First, generatePaths is called, then it searches for the node representing the end word in the returned array.
-     * Then it recursively calls getDistance(private) on each previous node until there are no previous nodes (Once it reaches the start word).
-     * Each call adds one to the total distance.
-     * @param w1 Starting word.
-     * @param w2 Ending word.
-     * @return Levenshtein distance between the two words.
-     */
-    @Override
-    public int getDistance(String w1, String w2) {
-        LevenshteinNode[] pathsRevealed = generatePaths(w1, w2, System.nanoTime());
-        return getDistance(Levenshtein.binarySearch(pathsRevealed, w2));
-    }
-    private int getDistance(LevenshteinNode n) {
-        if (n.getPrevious().size() == 0) {
-            return 0;
-        } else {
-            return getDistance(n) + 1;
-        }
-    }
-
-    /**
-     * First, generatePaths is called, then it searches for the node representing the end word in the returned array.
-     * Then it recursively calls getAllPaths(private) on each of the previous nodes until it reaches the start word, which has no previous.
-     * On each call, it adds its own word to the front of the previously generated text. That way, once you reach the first word, the
-     * returned sequence denotes the order of changes between the two words.
-     * Each path is then added to an ArrayList and returned.
-     * @param w1 Starting word.
-     * @param w2 Ending word.
-     * @return Returns a list of strings, with each string being a representation of a path between the two words, with arrows between words, denoting where a change occurred.
-     */
-    @Override
-    public List<String> getAllPaths(String w1, String w2) {
-        LevenshteinNode[] pathsRevealed = generatePaths(w1, w2, System.nanoTime());
-        LevenshteinNode n = Levenshtein.binarySearch(pathsRevealed, w2);
-        List<String> paths = new ArrayList<>();
-        for (LevenshteinNode prev : n.getPrevious()) {
-            getAllPaths(prev, "-> " + n.getWord(), paths);
-        }
-        return paths;
-    }
-    private void getAllPaths(LevenshteinNode n, String after, List<String> paths) {
-        if (n.getPrevious().size() == 0) {
-            paths.add(n.getWord() + after);
-        } else {
-            for (LevenshteinNode prev : n.getPrevious()) {
-                getAllPaths(prev, "-> " + n.getWord() + after, paths);
+                //System.out.println("\n" + outer);
+                //System.out.println("Searched Nodes: " + searched.size());
+                System.out.println("Total Time:" + (System.nanoTime() - startTime) / 1000000);
             }
         }
     }
