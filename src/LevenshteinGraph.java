@@ -5,6 +5,7 @@ Filename: LevenshteinGraph.java
 Maintenance Log:
     Started. Added generateNewOuter, findNeighbors, areNeighboring, and outerIntersects (23 Mar 2023 10:56)
     Changed outerIntersects to no longer be static and created outerContains for LevenshteinSingleSided (27 Mar 2023 10:40)
+    Added allPathsBetween, both the call for a single-sided algorithm and the recursive method which might work for dual sided (29 Mar 2023 10:57)
 */
 
 import java.util.*;
@@ -51,7 +52,7 @@ public class LevenshteinGraph {
      * Finds the neighbors of w and returns it in a HashSet.
      * Narrows the search bounds in a few ways. Firstly, it only checks w against legal words.
      * Among those legal words, w is only checked against the ones with a length difference of less than one, as otherwise they cannot be neighboring.
-     * w is not checked against words already in the graph, as any path which arrives at a word later than another path will not be a levenshtein.
+     * Neighbors already in the graph will never be added to the new outer, as paths that arrive at a word later than another path will always be longer.
      * @param w Word to find the neighbors of.
      * @param dictionary Array of all legal words.
      * @param lengthStartIndexes A map, with the values being the first index of a word in dictionary of a length equal to its key.
@@ -62,8 +63,8 @@ public class LevenshteinGraph {
         int endIndex = lengthStartIndexes.getOrDefault(w.length() + 2, dictionary.length);
         // Reduces the searching scope to only words with a length that allows them to be neighboring w
         for (int i = lengthStartIndexes.getOrDefault(w.length() - 1, 0); i < endIndex; i++) {
-            // Checks first to see if the word is in the graph to not waste time checking if the words are neighboring if it is already in the graph
-            if (!searched.containsKey(dictionary[i]) && !outer.containsKey(dictionary[i]) && areNeighboring(w, dictionary[i])) {
+            // Ensures that neighbors already in the graph will not be added
+            if (areNeighboring(w, dictionary[i]) && !outer.containsKey(dictionary[i]) && !searched.containsKey(dictionary[i])) {
                 neighbors.add(dictionary[i]);
             }
         }
@@ -121,6 +122,40 @@ public class LevenshteinGraph {
         return true;
     }
 
+    public HashSet<ArrayList<String>> allPathsBetween(String w1, String w2) {
+        ArrayList<String> previous = new ArrayList<>(Arrays.asList(w2));
+        if (w1 == w2) {
+            HashSet<ArrayList<String>> toReturn = new HashSet<>();
+            toReturn.add(previous);
+            return toReturn;
+        } else {
+            return allPathsBetween(new HashSet<>(), previous, w1);
+        }
+    }
+    public HashSet<ArrayList<String>> allPathsBetween(HashSet<ArrayList<String>> paths, ArrayList<String> previous, String root) {
+        String testWord = previous.get(0);
+        HashSet<String> allPrevious;
+        if (outer.containsKey(testWord)) {
+            allPrevious = outer.get(testWord);
+        } else {
+            allPrevious = searched.get(testWord);
+        }
+        System.out.println(outer);
+        System.out.println(previous);
+        System.out.println(allPrevious);
+        if (allPrevious.contains(root)) {
+            previous.add(0, root);
+            paths.add(previous);
+        } else {
+            for (String w : allPrevious) {
+                ArrayList<String> newPrevious = new ArrayList<>(previous);
+                newPrevious.add(0, w);
+                paths = allPathsBetween(paths, newPrevious, root);
+            }
+        }
+        return paths;
+    }
+
     /**
      * Checks if the outer of this graph contains w.
      * This method is for single-sided levenshtein algorithms, where each layer is checked against a single target word.
@@ -135,7 +170,7 @@ public class LevenshteinGraph {
      * Checks if there is any word in both the outside of this and g.
      * This method is for dual-sided levenshtein algorithms, where each layer is checked against the outer of another graph.
      * @param g Graph to check against.
-     * @return If the outside of this graph contains and word in the outside of the other graph.
+     * @return If outer of this graph contains any words in the outer of the other graph.
      */
     public boolean outerIntersects(LevenshteinGraph g) {
         HashMap<String, HashSet<String>> outerCopy = outer;
@@ -155,6 +190,7 @@ public class LevenshteinGraph {
         return false;
     }
 
+    /** @return The size of outer */
     public int outerSize() {
         return outer.size();
     }

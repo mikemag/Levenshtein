@@ -39,7 +39,7 @@ public class LevenshteinSingleSided extends Levenshtein {
         Levenshtein test = new LevenshteinSingleSided("src/Dictionary.txt");
         long time1 = System.nanoTime();
         String w1 = "dog";
-        String w2 = "cat";
+        String w2 = "puppy";
         test.generatePaths(w1, w2, time1);
         System.out.println("Done in " + (System.nanoTime() - time1) / 1000000 + " milliseconds");
         //TODO: Add mergesort
@@ -61,7 +61,8 @@ public class LevenshteinSingleSided extends Levenshtein {
             System.out.println(gOSize);
             g.generateNewOuter(dictionary, lengthStartIndexes);
             if (gOSize == 0 || g.outerContains(w2)) {
-               return new ArrayList<>();
+                System.out.println(g.allPathsBetween(w1, w2));
+                return new ArrayList<>();
             }
             if (PRINT_EXTRA) {
                 //System.out.println("\n" + outer);
