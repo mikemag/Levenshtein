@@ -15,23 +15,17 @@ Maintenance Log:
     LevenshteinOneSided now finds both the path between nodes and length, but is still a normally worse algorithm than LevenshteinDualSided (20 Mar 2023 1:12)
     Converted the HashSets to HashMaps of Levenshtein Nodes with a String key (20 Mar 2023 20:54)
     Finished incorporating LevenshteinGraph and removing LevenshteinNode (27 Mar 2023 10:40)
+    Moved the generating of dictionary into the superclass. (29 Mar 2023 22:53)
+    It now converts the raw data stored in the graphs to a something usable, a TreeSet of paths stored as ArrayLists
+        It can also convert to a string, allowing you to make a graph at http://www.webgraphviz.com/ (30 Mar 2023 0:14)
 */
 
 import java.io.*;
-import java.nio.file.*;
 import java.util.*;
 
 public class LevenshteinSingleSided extends Levenshtein {
-    public LevenshteinSingleSided(String filename) throws IOException {
-        super(new String[(int) Files.lines(Paths.get("src/Dictionary.txt")).count()], new HashMap<>());
-        Scanner s = new Scanner(new File(filename));
-        int i = 0;
-        while (s.hasNext()) {
-            String word = s.next();
-            dictionary[i] = word;
-            lengthStartIndexes.putIfAbsent(word.length(), i);
-            i++;
-        }
+    public LevenshteinSingleSided(String pathname) throws IOException {
+        super(pathname);
     }
 
     /** This is just for testing. */
@@ -39,10 +33,10 @@ public class LevenshteinSingleSided extends Levenshtein {
         Levenshtein test = new LevenshteinSingleSided("src/Dictionary.txt");
         long time1 = System.nanoTime();
         String w1 = "dog";
-        String w2 = "puppy";
-        test.generatePaths(w1, w2, time1);
+        String w2 = "cat";
+        System.out.println("Here are all the paths between '" + w1 + "' and '" + w2 + "': \n");
+        System.out.println(LevenshteinGraph.pathsToString(test.generatePaths(w1, w2, time1)));
         System.out.println("Done in " + (System.nanoTime() - time1) / 1000000 + " milliseconds");
-        //TODO: Add mergesort
     }
 
     /**
@@ -54,20 +48,25 @@ public class LevenshteinSingleSided extends Levenshtein {
      *         This only generates the information required to find the paths - It does not directly tell you what the paths are.
      */
     @Override
-    protected ArrayList<ArrayList<String>> generatePaths(String w1, String w2, long startTime) {
+    protected TreeSet<LinkedList<String>> generatePaths(String w1, String w2, long startTime) {
+        if (w1.equals(w2)) {
+            TreeSet<LinkedList<String>> path = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
+            path.add(new LinkedList<>(Arrays.asList(w1)));
+            return path;
+        }
         LevenshteinGraph g = new LevenshteinGraph(w1);
         while (true) {
-            int gOSize = g.outerSize();
-            System.out.println(gOSize);
             g.generateNewOuter(dictionary, lengthStartIndexes);
-            if (gOSize == 0 || g.outerContains(w2)) {
-                System.out.println(g.allPathsBetween(w1, w2));
-                return new ArrayList<>();
-            }
             if (PRINT_EXTRA) {
-                //System.out.println("\n" + outer);
-                //System.out.println("Searched Nodes: " + searched.size());
-                System.out.println("Total Time:" + (System.nanoTime() - startTime) / 1000000);
+                System.out.println("Outer: " + g.outerSize());
+                System.out.println("Searched: " + g.searchedSize());
+                System.out.println("Total Searched: " + (g.outerSize() + g.searchedSize()));
+                System.out.println("Current Time: " + (System.nanoTime() - startTime) / 1000000 + "\n");
+            }
+            if (g.outerSize() == 0) {
+                return null;
+            } else if (g.outerContains(w2)) {
+                return g.allPathsBetween(w1, w2, false);
             }
         }
     }

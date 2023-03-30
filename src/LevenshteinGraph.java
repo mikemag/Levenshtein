@@ -6,6 +6,7 @@ Maintenance Log:
     Started. Added generateNewOuter, findNeighbors, areNeighboring, and outerIntersects (23 Mar 2023 10:56)
     Changed outerIntersects to no longer be static and created outerContains for LevenshteinSingleSided (27 Mar 2023 10:40)
     Added allPathsBetween, both the call for a single-sided algorithm and the recursive method which might work for dual sided (29 Mar 2023 10:57)
+    allPathsBetween returns a TreeSet of LinkedLists now, added searchedSize and getOuterIntersection (29 Mar 2023 23:19)
 */
 
 import java.util.*;
@@ -122,38 +123,69 @@ public class LevenshteinGraph {
         return true;
     }
 
-    public HashSet<ArrayList<String>> allPathsBetween(String w1, String w2) {
-        ArrayList<String> previous = new ArrayList<>(Arrays.asList(w2));
-        if (w1 == w2) {
-            HashSet<ArrayList<String>> toReturn = new HashSet<>();
+    public TreeSet<LinkedList<String>> allPathsBetween(String w1, String w2, boolean reversed) {
+        LinkedList<String> previous = new LinkedList<>(Arrays.asList(w2));
+        if (w1.equals(w2)) {
+            TreeSet<LinkedList<String>> toReturn = new TreeSet<>(PATH_COMPARATOR);
             toReturn.add(previous);
             return toReturn;
         } else {
-            return allPathsBetween(new HashSet<>(), previous, w1);
+            return allPathsBetween(new TreeSet<>(PATH_COMPARATOR), previous, w1, reversed);
         }
     }
-    public HashSet<ArrayList<String>> allPathsBetween(HashSet<ArrayList<String>> paths, ArrayList<String> previous, String root) {
-        String testWord = previous.get(0);
-        HashSet<String> allPrevious;
-        if (outer.containsKey(testWord)) {
-            allPrevious = outer.get(testWord);
+    public TreeSet<LinkedList<String>> allPathsBetween(TreeSet<LinkedList<String>> paths, LinkedList<String> currentPath, String root, boolean reversed) {
+        String currentWord;
+        if (!reversed) {
+            currentWord = currentPath.getFirst();
         } else {
-            allPrevious = searched.get(testWord);
+            currentWord = currentPath.getLast();
         }
-        System.out.println(outer);
-        System.out.println(previous);
-        System.out.println(allPrevious);
-        if (allPrevious.contains(root)) {
-            previous.add(0, root);
-            paths.add(previous);
+
+        HashSet<String> previousInGraph;
+        if (outer.containsKey(currentWord)) {
+            previousInGraph = new HashSet<>(outer.get(currentWord));
         } else {
-            for (String w : allPrevious) {
-                ArrayList<String> newPrevious = new ArrayList<>(previous);
-                newPrevious.add(0, w);
-                paths = allPathsBetween(paths, newPrevious, root);
+            previousInGraph = new HashSet<>(searched.get(currentWord));
+        }
+
+        if (previousInGraph.contains(root)) {
+            if (!reversed) {
+                currentPath.addFirst(root);
+            } else {
+                currentPath.addLast(root);
+            }
+            paths.add(currentPath);
+        } else {
+            if (!reversed) {
+                for (String w : previousInGraph) {
+                    LinkedList<String> newPrevious = new LinkedList<>(currentPath);
+                    newPrevious.addFirst(w);
+                    paths = allPathsBetween(paths, newPrevious, root, reversed);
+                }
+            } else {
+                for (String w : previousInGraph) {
+                    LinkedList<String> newPrevious = new LinkedList<>(currentPath);
+                    newPrevious.addLast(w);
+                    paths = allPathsBetween(paths, newPrevious, root, reversed);
+                }
             }
         }
         return paths;
+    }
+
+    public static String pathsToString(TreeSet<LinkedList<String>> paths) {
+        int pathOrdinal = 0;
+        StringBuilder pathsBuilder = new StringBuilder();
+        for (LinkedList<String> l : paths) {
+            //pathsBuilder.append(++pathOrdinal + ". ");
+            Iterator<String> listIter = l.iterator();
+            pathsBuilder.append(listIter.next());
+            while (listIter.hasNext()) {
+                pathsBuilder.append("-> " + listIter.next());
+            }
+            pathsBuilder.append("\n");
+        }
+        return pathsBuilder.toString();
     }
 
     /**
@@ -190,8 +222,45 @@ public class LevenshteinGraph {
         return false;
     }
 
+    public HashSet<String> getOuterIntersection(LevenshteinGraph g) {
+        HashSet<String> intersection = new HashSet<>();
+        HashMap<String, HashSet<String>> outerCopy = outer;
+        HashMap<String, HashSet<String>> otherOuter = g.outer;
+        if (outerCopy.keySet().size() > otherOuter.keySet().size()) {
+            HashMap<String, HashSet<String>> temp = otherOuter;
+            otherOuter = outerCopy;
+            outerCopy = temp;
+        }
+        for (String w : outerCopy.keySet()) {
+            if (otherOuter.containsKey(w)) {
+                intersection.add(w);
+            }
+        }
+        return intersection;
+    }
+
     /** @return The size of outer */
     public int outerSize() {
         return outer.size();
+    }
+
+    /** @return The size of searched */
+    public int searchedSize() {
+        return searched.size();
+    }
+    public static final Comparator<LinkedList<String>> PATH_COMPARATOR = (o1, o2) -> {
+        Iterator<String> i1 = o1.iterator();
+        Iterator<String> i2 = o2.iterator();
+        while (i1.hasNext()) {
+            int c = i1.next().compareTo(i2.next());
+            if (c != 0) {
+                return c;
+            }
+        }
+        return 0;
+    };
+
+    public String toString() {
+        return "Outer: \n" + outer + "\nSearched: \n" + searched;
     }
 }

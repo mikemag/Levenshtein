@@ -7,13 +7,16 @@ Maintenance Log:
         and also added a constructor and a static binary search method (19 Mar 2023 23:09)
     Added methods to replace some of those in LevenshteinNode (22 Mar 2023 10:57)
     Changed dictionary to contain Strings instead of LevenshteinNodes (23 Mar 2023 10:57)
+    Moved the generating of dictionary into the constructor here. Also made the constructor sort the dictionary (29 Mar 2023 22:53)
 */
 
+import java.io.*;
+import java.nio.file.*;
 import java.util.*;
 
 public abstract class Levenshtein {
     /** Set to true to display extra text for debugging. */
-    protected static final boolean PRINT_EXTRA = true;
+    protected static final boolean PRINT_EXTRA = false;
 
     /**
      * Dictionary of words, which is read from a file and stored as an array of LevenshteinNodes with previous being empty.
@@ -27,29 +30,36 @@ public abstract class Levenshtein {
     protected final Map<Integer, Integer> lengthStartIndexes;
 
     /**
-     * Reads a dictionary from a file, storing each word as a LevenshteinNode with previous being empty.
-     * @param dictionary Value to set this dictionary to.
-     * @param lengthStartIndexes Value to set this lengthStartIndexes to.
+     * Reads a dictionary from a file, storing each word into the array, then sorting it, then determining lengthStartIndexes.
+     * @param filepath Name of the file to read from dictionary to.
+     * @throws IOException
      */
-    protected Levenshtein(String[] dictionary, Map<Integer, Integer> lengthStartIndexes) {
-        this.dictionary = dictionary;
-        this.lengthStartIndexes = lengthStartIndexes;
+    public Levenshtein(String filepath) throws IOException {
+        dictionary = new String[(int) Files.lines(Paths.get("src/Dictionary.txt")).count()];
+        lengthStartIndexes = new HashMap<>();
+        Scanner s = new Scanner(new File(filepath));
+        for (int i = 0; s.hasNext(); i++) {
+            dictionary[i] = s.next();
+        }
+        MergeSort.sort(dictionary, COMPARE_BY_LENGTH);
+        for (int i = 0; i < dictionary.length; i++) {
+            lengthStartIndexes.putIfAbsent(dictionary[i].length(), i);
+        }
     }
 
     /**
      * @param w1 Starting word.
      * @param w2 Ending word.
      * @param startTime Approximate time (gotten from System.nanoTime()) that this function was called.
-     * @return An array which contains a modified version of dictionary with every path between the words found and appropriate pointers stored in each node.
-     *         This only generates the information required to find the paths - It does not directly tell you what the paths are.
+     * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between w1 and w2
      */
-    protected abstract ArrayList<ArrayList<String>> generatePaths(String w1, String w2, long startTime);
+    protected abstract TreeSet<LinkedList<String>> generatePaths(String w1, String w2, long startTime);
 
     /**
      * Comparator which sorts strings first by length then their natural ordering, which is useful for sorting the dictionary to avoid
      * searching words that cannot be neighboring or when performing binary search.
      */
-    private static final Comparator<String> SORTED_BY_LENGTH = (o1, o2) -> {
+    private static final Comparator<String> COMPARE_BY_LENGTH = (o1, o2) -> {
         int c = o1.length() - o2.length();
         if (c == 0) {
             return o1.compareTo(o2);
