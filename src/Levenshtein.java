@@ -8,6 +8,7 @@ Maintenance Log:
     Added methods to replace some of those in LevenshteinNode (22 Mar 2023 10:57)
     Changed dictionary to contain Strings instead of LevenshteinNodes (23 Mar 2023 10:57)
     Moved the generating of dictionary into the constructor here. Also made the constructor sort the dictionary (29 Mar 2023 22:53)
+    Removed pathsToString from LevenshteinGraph and added it to this (31 Mar 9:39)
 */
 
 import java.io.*;
@@ -56,8 +57,37 @@ public abstract class Levenshtein {
     protected abstract TreeSet<LinkedList<String>> generatePaths(String w1, String w2, long startTime);
 
     /**
-     * Comparator which sorts strings first by length then their natural ordering, which is useful for sorting the dictionary to avoid
-     * searching words that cannot be neighboring or when performing binary search.
+     * Converts paths to a String representation, where each path is on its own line and a change is denoted by [word1]-> [word2]
+     * For example, the paths between "dog" and "cat" would be:
+     * @param paths A TreeSet of LinkedLists of Strings, with each LinkedList representing a path between the start and end words.
+     * @param showNumber Whether to add a number before each path (to count how many paths there are).
+     * @param showDistance Whether to add the distance to the end of the String.
+     * @return The LinkedList of paths, represented as Strings.
+     */
+    public static String pathsToString(TreeSet<LinkedList<String>> paths, boolean showNumber, boolean showDistance) {
+        int pathNumber = 0;
+        StringBuilder pathsBuilder = new StringBuilder();
+        for (LinkedList<String> l : paths) {
+            if (showNumber) {
+                pathsBuilder.append(++pathNumber + ". ");
+            }
+            Iterator<String> listIter = l.iterator();
+            pathsBuilder.append(listIter.next());
+            while (listIter.hasNext()) {
+                pathsBuilder.append("-> " + listIter.next());
+            }
+            pathsBuilder.append("\n");
+        }
+        if (showDistance) {
+            Iterator<LinkedList<String>> pathIter = paths.iterator();
+            int distance = pathIter.next().size() - 1;
+            pathsBuilder.append("Distance: " + distance);
+        }
+        return pathsBuilder.toString();
+    }
+
+    /**
+     * Comparator which sorts strings first by length then their natural ordering, which is used to sort the dictionary.
      */
     private static final Comparator<String> COMPARE_BY_LENGTH = (o1, o2) -> {
         int c = o1.length() - o2.length();

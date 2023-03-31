@@ -23,13 +23,13 @@ public class LevenshteinDualSided extends Levenshtein {
         String w1 = "monkey";
         String w2 = "business";
         long time1 = System.nanoTime();
-        System.out.println(LevenshteinGraph.pathsToString(test.generatePaths(w1, w2, time1)));
+        System.out.println(Levenshtein.pathsToString(test.generatePaths(w1, w2, time1)));
         System.out.println("Done in " + (System.nanoTime() - time1)/1000000 + " milliseconds.");
-        /*long time2 = System.nanoTime();
+        long time2 = System.nanoTime();
         for (int i = 0; i < 500; i++) {
-            LevenshteinGraph.pathsToString(test.generatePaths(w1, w2, time2));
+            Levenshtein.pathsToString(test.generatePaths(w1, w2, time2));
         }
-        System.out.println("Average Time: " + (System.nanoTime() - time2)/500000000 + " milliseconds");*/
+        System.out.println("Average Time: " + (System.nanoTime() - time2)/500000000 + " milliseconds");
     }
     public LevenshteinDualSided(String pathname) throws IOException {
         super(pathname);

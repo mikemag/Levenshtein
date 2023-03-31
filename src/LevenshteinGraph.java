@@ -7,6 +7,7 @@ Maintenance Log:
     Changed outerIntersects to no longer be static and created outerContains for LevenshteinSingleSided (27 Mar 2023 10:40)
     Added allPathsBetween, both the call for a single-sided algorithm and the recursive method which might work for dual sided (29 Mar 2023 10:57)
     allPathsBetween returns a TreeSet of LinkedLists now, added searchedSize and getOuterIntersection (29 Mar 2023 23:19)
+    Removed pathsToString from this and added it to Levenshtein (31 Mar 9:39)
 */
 
 import java.util.*;
@@ -171,21 +172,6 @@ public class LevenshteinGraph {
             }
         }
         return paths;
-    }
-
-    public static String pathsToString(TreeSet<LinkedList<String>> paths) {
-        int pathOrdinal = 0;
-        StringBuilder pathsBuilder = new StringBuilder();
-        for (LinkedList<String> l : paths) {
-            //pathsBuilder.append(++pathOrdinal + ". ");
-            Iterator<String> listIter = l.iterator();
-            pathsBuilder.append(listIter.next());
-            while (listIter.hasNext()) {
-                pathsBuilder.append("-> " + listIter.next());
-            }
-            pathsBuilder.append("\n");
-        }
-        return pathsBuilder.toString();
     }
 
     /**

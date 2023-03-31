@@ -35,7 +35,7 @@ public class LevenshteinSingleSided extends Levenshtein {
         String w1 = "dog";
         String w2 = "cat";
         System.out.println("Here are all the paths between '" + w1 + "' and '" + w2 + "': \n");
-        System.out.println(LevenshteinGraph.pathsToString(test.generatePaths(w1, w2, time1)));
+        System.out.println(Levenshtein.pathsToString(test.generatePaths(w1, w2, time1)));
         System.out.println("Done in " + (System.nanoTime() - time1) / 1000000 + " milliseconds");
     }
 
