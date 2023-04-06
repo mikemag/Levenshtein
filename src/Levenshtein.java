@@ -36,13 +36,14 @@ public abstract class Levenshtein {
      * @throws IOException
      */
     public Levenshtein(String filepath) throws IOException {
-        dictionary = new String[(int) Files.lines(Paths.get("src/Dictionary.txt")).count()];
+        ArrayList<String> listDictionary = new ArrayList();
         lengthStartIndexes = new HashMap<>();
         Scanner s = new Scanner(new File(filepath));
-        for (int i = 0; s.hasNext(); i++) {
-            dictionary[i] = s.next();
+        while(s.hasNext()) {
+            listDictionary.add(s.next());
         }
-        MergeSort.sort(dictionary, COMPARE_BY_LENGTH);
+        dictionary = listDictionary.toArray(new String[0]);
+        Arrays.sort(dictionary, COMPARE_BY_LENGTH);
         for (int i = 0; i < dictionary.length; i++) {
             lengthStartIndexes.putIfAbsent(dictionary[i].length(), i);
         }
