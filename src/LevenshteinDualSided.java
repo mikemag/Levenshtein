@@ -11,6 +11,7 @@ Maintenance Log:
     Moved the generating of dictionary into the superclass. (29 Mar 2023 22:53)
         It now converts the raw data stored in the graphs to a something usable, a TreeSet of paths stored as ArrayLists
         It can also convert to a string, allowing you to make a graph at http://www.webgraphviz.com/ (30 Mar 2023 0:14)
+    Fixed calls of pathsToString in this and LevenshteinSingleSided (6 April 2023 9:54)
 */
 
 import java.io.*;
@@ -23,11 +24,11 @@ public class LevenshteinDualSided extends Levenshtein {
         String w1 = "monkey";
         String w2 = "business";
         long time1 = System.nanoTime();
-        System.out.println(Levenshtein.pathsToString(test.generatePaths(w1, w2, time1)));
+        System.out.println(Levenshtein.pathsToString(test.generatePaths(w1, w2, time1), false, false));
         System.out.println("Done in " + (System.nanoTime() - time1)/1000000 + " milliseconds.");
         long time2 = System.nanoTime();
         for (int i = 0; i < 500; i++) {
-            Levenshtein.pathsToString(test.generatePaths(w1, w2, time2));
+            Levenshtein.pathsToString(test.generatePaths(w1, w2, time2), false, false);
         }
         System.out.println("Average Time: " + (System.nanoTime() - time2)/500000000 + " milliseconds");
     }
