@@ -8,6 +8,7 @@ Maintenance Log:
     Added allPathsBetween, both the call for a single-sided algorithm and the recursive method which might work for dual sided (29 Mar 2023 10:57)
     allPathsBetween returns a TreeSet of LinkedLists now, added searchedSize and getOuterIntersection (29 Mar 2023 23:19)
     Removed pathsToString from this and added it to Levenshtein (31 Mar 9:39)
+    Added more comments (7 April 2023 9:20)
 */
 
 import java.util.*;
@@ -124,6 +125,14 @@ public class LevenshteinGraph {
         return true;
     }
 
+    /**
+     * Recursively finds all paths between w1 and w2.
+     * TODO: Finish this
+     * @param w1 First word.
+     * @param w2 Second word.
+     * @param reversed If false, w1 -> w2 is returned. If true, w2 -> w1 is returned.
+     * @return All paths between w1 and w2, with each path being expressed a LinkedList of the words in the path, and the paths being stored in a TreeSet.
+     */
     public TreeSet<LinkedList<String>> allPathsBetween(String w1, String w2, boolean reversed) {
         LinkedList<String> previous = new LinkedList<>(Arrays.asList(w2));
         if (w1.equals(w2)) {
@@ -142,14 +151,16 @@ public class LevenshteinGraph {
             currentWord = currentPath.getLast();
         }
 
-        HashSet<String> previousInGraph;
+        // On the first iteration (Where current word is w1 from the non-recursive call), currentWord will be in outer.
+        // After
+        HashSet<String> setToSearch;
         if (outer.containsKey(currentWord)) {
-            previousInGraph = new HashSet<>(outer.get(currentWord));
+            setToSearch = new HashSet<>(outer.get(currentWord));
         } else {
-            previousInGraph = new HashSet<>(searched.get(currentWord));
+            setToSearch = new HashSet<>(searched.get(currentWord));
         }
 
-        if (previousInGraph.contains(root)) {
+        if (setToSearch.contains(root)) {
             if (!reversed) {
                 currentPath.addFirst(root);
             } else {
@@ -158,13 +169,13 @@ public class LevenshteinGraph {
             paths.add(currentPath);
         } else {
             if (!reversed) {
-                for (String w : previousInGraph) {
+                for (String w : setToSearch) {
                     LinkedList<String> newPrevious = new LinkedList<>(currentPath);
                     newPrevious.addFirst(w);
                     paths = allPathsBetween(paths, newPrevious, root, reversed);
                 }
             } else {
-                for (String w : previousInGraph) {
+                for (String w : setToSearch) {
                     LinkedList<String> newPrevious = new LinkedList<>(currentPath);
                     newPrevious.addLast(w);
                     paths = allPathsBetween(paths, newPrevious, root, reversed);

@@ -12,6 +12,7 @@ Maintenance Log:
         It now converts the raw data stored in the graphs to a something usable, a TreeSet of paths stored as ArrayLists
         It can also convert to a string, allowing you to make a graph at http://www.webgraphviz.com/ (30 Mar 2023 0:14)
     Fixed calls of pathsToString in this and LevenshteinSingleSided (6 April 2023 9:54)
+    Added more comments (7 April 2023 9:20)
 */
 
 import java.io.*;
@@ -19,6 +20,7 @@ import java.util.*;
 
 // Average Monkey -> ... -> Business time: 433 milliseconds.
 public class LevenshteinDualSided extends Levenshtein {
+    /** Tester method for LevenshteinDualSided */
     public static void main(String[] args) throws IOException {
         Levenshtein test = new LevenshteinDualSided("src/Dictionary.txt");
         String w1 = "monkey";
@@ -32,8 +34,15 @@ public class LevenshteinDualSided extends Levenshtein {
         }
         System.out.println("Average Time: " + (System.nanoTime() - time2)/500000000 + " milliseconds");
     }
-    public LevenshteinDualSided(String pathname) throws IOException {
-        super(pathname);
+
+    /**
+     * See Levenshtein(String filepath)
+     * Reads a dictionary from a file, storing each word into the array, then sorting it, then determining lengthStartIndexes.
+     * @param filepath Name of the file to read from dictionary to.
+     * @throws IOException
+     */
+    public LevenshteinDualSided(String filepath) throws IOException {
+        super(filepath);
     }
 
     @Override

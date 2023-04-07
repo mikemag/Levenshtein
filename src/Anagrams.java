@@ -5,6 +5,7 @@ Filename: Anagrams.java
 Maintenance Log:
     Started (6 April 2023 10:14)
         Notably wrote findAnagrams, toAnagram, and toCanonical, but have not tested (10:56)
+    Added more comments (7 April 2023 9:20)
 */
 
 import java.io.*;
@@ -15,6 +16,13 @@ public class Anagrams {
     private final int[] lengthStartIndexes;
     private HashMap<String, String> wordKey;
     private HashMap<String, ArrayList<String>> canonicalKey;
+
+    /**
+     * Reads the file at filepath and puts each line into dictionary. Then sorts the dictionary.
+     * The first index of each length of word is put into lengthStartIndexes (with the index being the word length).
+     * @param filepath Path of the file to read the dictionary from.
+     * @throws IOException
+     */
     public Anagrams(String filepath) throws IOException {
         ArrayList<String> listDictionary = new ArrayList();
         Scanner s = new Scanner(new File(filepath));
@@ -56,6 +64,12 @@ public class Anagrams {
         return  anagrams;
     }
 
+    /**
+     * Converts w to a char array and sorts that array naturally. Then calls toString on that array and returns it.
+     * @param w Word to convert.
+     * @return w in its canonical form. Note that since this returns a string representation of an array of w, it won't return the raw canonical string.
+     *         For example, toCanonical
+     */
     private String toCanonical(String w) {
         char[] a = w.toLowerCase().toCharArray();
         Arrays.sort(a);
