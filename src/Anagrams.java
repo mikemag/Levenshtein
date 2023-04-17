@@ -6,6 +6,7 @@ Maintenance Log:
     Started (6 April 2023 10:14)
         Notably wrote findAnagrams, toAnagram, and toCanonical, but have not tested (10:56)
     Added more comments (7 April 2023 9:20)
+    Fixed findAnagrams (17 April 2023 10:39)
 */
 
 import java.io.*;
@@ -16,6 +17,14 @@ public class Anagrams {
     private final int[] lengthStartIndexes;
     private HashMap<String, String> wordKey;
     private HashMap<String, ArrayList<String>> canonicalKey;
+
+    /** Tester Method */
+    public static void main(String[] args) throws IOException {
+        Anagrams a = new Anagrams("src/Dictionary.txt");
+        System.out.println(a.findAnagrams("share"));
+        System.out.println(a.findAnagrams("shear"));
+        System.out.println(a.findAnagrams("a"));
+    }
 
     /**
      * Reads the file at filepath and puts each line into dictionary. Then sorts the dictionary.
@@ -31,7 +40,7 @@ public class Anagrams {
         }
         dictionary = listDictionary.toArray(new String[0]);
         Arrays.sort(dictionary, COMPARE_BY_LENGTH);
-        lengthStartIndexes = new int[dictionary[dictionary.length - 1].length()];
+        lengthStartIndexes = new int[dictionary[dictionary.length - 1].length() + 1];
         int currentLength = -1;
         for (int i = 0; i < dictionary.length; i++) {
             int l = dictionary[i].length();
@@ -40,8 +49,17 @@ public class Anagrams {
                 lengthStartIndexes[l] = i;
             }
         }
+        wordKey = new HashMap<>();
+        canonicalKey = new HashMap<>();
     }
 
+    /**
+     * Generate anagrams takes a specific length and finds the canonical of each word in the dictionary of that length.
+     * The canonical of each word is added to wordKey and a list of each word associated with each canonical is added to canonicalKey.
+     * This allows the anagrams to be found by getting the value of a word in wordKey and getting the list of values of that in canonicalKey.
+     * Each length is generated individually to reduce the amount work that has to be done initially.
+     * @param length Length of word to find anagrams of.
+     */
     private void generateAnagrams(int length) {
         int maxI = lengthStartIndexes[length + 1];
         for (int i = lengthStartIndexes[length]; i < maxI; i++) {
@@ -54,14 +72,24 @@ public class Anagrams {
         }
     }
 
+    /**
+     * Returns the anagrams of a word by finding its canonical in wordKey and finding all words with that canonical in canonicalKey.
+     * If w's canonical has not yet been generated, generateAnagrams is called.
+     * @param w Word to find anagrams of.
+     * @return ArrayList of all anagrams of w.
+     */
     private ArrayList<String> findAnagrams(String w) {
-        String canonical = wordKey.getOrDefault(w, null);
-        if (canonical.equals(null)) {
-            generateAnagrams(w.length());
+        if (w.length() == 1) {
+            return new ArrayList<>();
         }
-        ArrayList<String> anagrams = canonicalKey.get(canonical);
+        String canonical = wordKey.getOrDefault(w, null);
+        if (canonical == null) {
+            generateAnagrams(w.length());
+            canonical = wordKey.get(w);
+        }
+        ArrayList<String> anagrams = (ArrayList<String>)canonicalKey.get(canonical).clone();
         anagrams.remove(w);
-        return  anagrams;
+        return anagrams;
     }
 
     /**

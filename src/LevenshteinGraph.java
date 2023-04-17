@@ -9,6 +9,7 @@ Maintenance Log:
     allPathsBetween returns a TreeSet of LinkedLists now, added searchedSize and getOuterIntersection (29 Mar 2023 23:19)
     Removed pathsToString from this and added it to Levenshtein (31 Mar 9:39)
     Added more comments (7 April 2023 9:20)
+    Finished the comments (17 April 2023 10:13)
 */
 
 import java.util.*;
@@ -16,6 +17,11 @@ import java.util.*;
 public class LevenshteinGraph {
     private HashMap<String, HashSet<String>> searched;
     private HashMap<String, HashSet<String>> outer;
+
+    /**
+     * Initializes the graph, with searched being completely empty and outer only containing the root word with no previous.
+     * @param root Word to put in the outer layer of the graph.
+     */
     public LevenshteinGraph(String root) {
         searched = new HashMap<>();
         outer = new HashMap<>();
@@ -245,6 +251,12 @@ public class LevenshteinGraph {
     public int searchedSize() {
         return searched.size();
     }
+
+    /**
+     * Compares paths by comparing the first words of each path to each other.
+     * If the first words are identical, the next word is checked, then the next one, and so on.
+     * @return Returns 0 if the paths are identical, < 0 if the first word in o1 comes before o2, and >1 if it comes after.
+     */
     public static final Comparator<LinkedList<String>> PATH_COMPARATOR = (o1, o2) -> {
         Iterator<String> i1 = o1.iterator();
         Iterator<String> i2 = o2.iterator();

@@ -13,6 +13,7 @@ Maintenance Log:
         It can also convert to a string, allowing you to make a graph at http://www.webgraphviz.com/ (30 Mar 2023 0:14)
     Fixed calls of pathsToString in this and LevenshteinSingleSided (6 April 2023 9:54)
     Added more comments (7 April 2023 9:20)
+    Added a heading to graphsToPaths
 */
 
 import java.io.*;
@@ -45,6 +46,13 @@ public class LevenshteinDualSided extends Levenshtein {
         super(filepath);
     }
 
+    /**
+     * TODO: ADD PROPER DESCRIPTION
+     * @param w1 Starting word.
+     * @param w2 Ending word.
+     * @param startTime Approximate time (gotten from System.nanoTime()) that this function was called.
+     * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between w1 and w2
+     */
     @Override
     protected TreeSet<LinkedList<String>> generatePaths(String w1, String w2, long startTime) {
         if (w1.equals(w2)) {
@@ -78,6 +86,16 @@ public class LevenshteinDualSided extends Levenshtein {
         }
     }
 
+    /**
+     * On each graph, the paths between the root word and the intersection words are found.
+     * Then, these paths are "stitched together", such that all unique paths from the staring word to the ending word.
+     * @param g1 Starting word graph.
+     * @param g2 Ending word graph.
+     * @param w1 Starting word.
+     * @param w2 Ending word.
+     * @param intersection Set of words which are shared between the outer layers of g1 and g2.
+     * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between w1 and w2.
+     */
     private TreeSet<LinkedList<String>> graphsToPaths(LevenshteinGraph g1, LevenshteinGraph g2, String w1, String w2, HashSet<String> intersection) {
         TreeSet<LinkedList<String>> pathsToReturn = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
         TreeSet<LinkedList<String>> g1Paths = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
@@ -86,6 +104,9 @@ public class LevenshteinDualSided extends Levenshtein {
             g1Paths.addAll(g1.allPathsBetween(w1, s, false));
             g2Paths.addAll(g2.allPathsBetween(w2, s, true));
         }
+        // For each word in intersection, there may be multiple paths to it from the starting word and there may be multiple to the ending word.
+        // To account for this, each rootPath is indexed and then a unique path for each destinationPath is added to pathsToReturn.
+        // To make sure only legal paths are added, the rootPath and destinationPath are first checked for a shared intersection word.
         for (LinkedList<String> rootPath : g1Paths) {
             for (LinkedList<String> destinationPath : g2Paths) {
                 LinkedList<String> pathToAdd = (LinkedList<String>)rootPath.clone();

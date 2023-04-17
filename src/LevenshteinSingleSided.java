@@ -45,8 +45,7 @@ public class LevenshteinSingleSided extends Levenshtein {
      * @param w1 Starting word.
      * @param w2 Ending word.
      * @param startTime Approximate time (gotten from System.nanoTime()) that this function was called.
-     * @return An array which contains a modified version of dictionary with every path between the words found and appropriate pointers stored in each node.
-     *         This only generates the information required to find the paths - It does not directly tell you what the paths are.
+     * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between w1 and w2.
      */
     @Override
     protected TreeSet<LinkedList<String>> generatePaths(String w1, String w2, long startTime) {
