@@ -8,7 +8,7 @@ public class LevenshteinSingleSided extends Levenshtein {
 
     /** This is just for testing. */
     public static void main(String[] args) throws IOException {
-        Levenshtein test = new LevenshteinSingleSided("src/Dictionary.txt");
+        Levenshtein test = new LevenshteinSingleSided("resources/Dictionary370k.txt");
         long time1 = System.nanoTime();
         String w1 = "dog";
         String w2 = "cat";

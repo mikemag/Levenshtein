@@ -103,8 +103,7 @@ public class LevenshteinGraph {
             w1l = w2l;
         }
         // Checks to see if the words are neighboring if the first one is shorter than the second one
-        int w2Index = 0;
-        for (int i = 0; i < w1l; i++, w2Index++) {
+        for (int i = 0, w2Index = 0; i < w1l; i++, w2Index++) {
             if (w1.charAt(i) != w2.charAt(w2Index)) {
                 if (foundDifference) {
                     return false;

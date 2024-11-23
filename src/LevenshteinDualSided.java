@@ -5,7 +5,7 @@ import java.util.*;
 public class LevenshteinDualSided extends Levenshtein {
     /** Tester method for LevenshteinDualSided */
     public static void main(String[] args) throws IOException {
-        Levenshtein test = new LevenshteinDualSided("src/Dictionary.txt");
+        Levenshtein test = new LevenshteinDualSided("resources/Dictionary370k.txt");
         String w1 = "monkey";
         String w2 = "business";
         long time1 = System.nanoTime();
