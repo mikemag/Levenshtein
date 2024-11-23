@@ -1,26 +1,3 @@
-/*
-Author: Tristen Yim
-Project: Levenshtein Distance (GS14-01)
-Filename: LevenshteinOneSided.java
-Maintenance Log:
-    Started. Already had ideas as to how I was going to find the Levenshtein between two words (13 Mar 2023 23:07)
-        Started the findDistance method. Currently, the LevenshteinNodes are stored in a LinkedList of HashSets (Pi Day Bomb Squad)
-        It works for some pairs of words, but underestimates for others. After some testing, looks like a problem with isNeighboring (1:27)
-        It works for all tested pairs except monkey -> business. Going to have to work that out and make the algorithm more efficient as it takes nearly 9 seconds for dog and quack (2:05)
-    Attempted to fix findDistance but failed so miserably that I have to essentially restart (15 Mar 2023 0:45)
-    It now finds monkey -> business in 25 seconds, using the LinkedList of HashSets to store each layer (15 Mar 2023 10:57)
-    Restructuring how the data is stored to allow it to find all paths. Changing a HashMap to a TreeMap caused it to break (16 Mar 2023 10:55)
-    Now takes about 13 seconds to go from business to monkey, assuming the words are fed in the correct order (17 Mar 2023 15:25)
-    Renamed to "LevenshteinSingleSided.java" (19 Mar 2023 17:02)
-    LevenshteinOneSided now finds both the path between nodes and length, but is still a normally worse algorithm than LevenshteinDualSided (20 Mar 2023 1:12)
-    Converted the HashSets to HashMaps of Levenshtein Nodes with a String key (20 Mar 2023 20:54)
-    Finished incorporating LevenshteinGraph and removing LevenshteinNode (27 Mar 2023 10:40)
-    Moved the generating of dictionary into the superclass. (29 Mar 2023 22:53)
-    It now converts the raw data stored in the graphs to a something usable, a TreeSet of paths stored as ArrayLists
-        It can also convert to a string, allowing you to make a graph at http://www.webgraphviz.com/ (30 Mar 2023 0:14)
-    Fixed calls of pathsToString in this and LevenshteinSingleSided (6 April 2023 9:54)
-*/
-
 import java.io.*;
 import java.util.*;
 

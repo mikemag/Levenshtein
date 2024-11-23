@@ -1,17 +1,3 @@
-/*
-Author: Tristen Yim
-Project: Levenshtein Distance (GS14-01)
-Filename: LevenshteinGraph.java
-Maintenance Log:
-    Started. Added generateNewOuter, findNeighbors, areNeighboring, and outerIntersects (23 Mar 2023 10:56)
-    Changed outerIntersects to no longer be static and created outerContains for LevenshteinSingleSided (27 Mar 2023 10:40)
-    Added allPathsBetween, both the call for a single-sided algorithm and the recursive method which might work for dual sided (29 Mar 2023 10:57)
-    allPathsBetween returns a TreeSet of LinkedLists now, added searchedSize and getOuterIntersection (29 Mar 2023 23:19)
-    Removed pathsToString from this and added it to Levenshtein (31 Mar 9:39)
-    Added more comments (7 April 2023 9:20)
-    Finished the comments (17 April 2023 10:13)
-*/
-
 import java.util.*;
 
 public class LevenshteinGraph {

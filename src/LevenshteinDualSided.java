@@ -1,21 +1,3 @@
-/*
-Author: Tristen Yim
-Project: Levenshtein Distance (GS14-01)
-Filename: LevenshteinOneSided.java
-Maintenance Log:
-    Started. Wrote generatePaths and generateNewOuter, however, they are untested for now (20 Mar 2023 1:12)
-    Generates the paths from Monkey to Business in about 1 second with my algorithm and my isNeighboring method (Does so in 0.8 with Mike's).
-    Converted the HashSets to HashMaps of Levenshtein Nodes with a String key (20 Mar 2023 20:54)
-    Working on converting the HashMaps to LevenshteinGraphs (23 Mar 2023 10:57)
-    Finished incorporating LevenshteinGraph and removing LevenshteinNode (27 Mar 2023 10:40)
-    Moved the generating of dictionary into the superclass. (29 Mar 2023 22:53)
-        It now converts the raw data stored in the graphs to a something usable, a TreeSet of paths stored as ArrayLists
-        It can also convert to a string, allowing you to make a graph at http://www.webgraphviz.com/ (30 Mar 2023 0:14)
-    Fixed calls of pathsToString in this and LevenshteinSingleSided (6 April 2023 9:54)
-    Added more comments (7 April 2023 9:20)
-    Added a heading to graphsToPaths
-*/
-
 import java.io.*;
 import java.util.*;
 

@@ -1,16 +1,3 @@
-/*
-Author: Tristen Yim
-Project: Levenshtein Distance (GS14-01)
-Filename: Levenshtein.java
-Maintenance Log:
-    Started. Added all the necessary collection such as the dictionary and lengthStartIndexes, all abstract methods such as generatePaths,
-        and also added a constructor and a static binary search method (19 Mar 2023 23:09)
-    Added methods to replace some of those in LevenshteinNode (22 Mar 2023 10:57)
-    Changed dictionary to contain Strings instead of LevenshteinNodes (23 Mar 2023 10:57)
-    Moved the generating of dictionary into the constructor here. Also made the constructor sort the dictionary (29 Mar 2023 22:53)
-    Removed pathsToString from LevenshteinGraph and added it to this (31 Mar 9:39)
-*/
-
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
