@@ -12,7 +12,12 @@ public class WildcardDatabase extends LevenshteinDatabase {
         for (int i = 0; i < dict.length; i++) {
             database.putWildcards(dict[i], WildcardDatabase.findWildcardIdentities(dict[i]));
         }
-        System.out.println(database.wildcardMap.toString());
+        //System.out.println(database.wildcardMap.toString());
+        System.out.println(database.findNeighbors(args[1]).toString());
+        System.out.println(database.findNeighbors(args[2]).toString());
+        System.out.println(database.findNeighbors(args[3]).toString());
+        System.out.println(database.areNeighbors(args[1], args[2]));
+        System.out.println(database.areNeighbors(args[1], args[3]));
     }
 
     public WildcardDatabase(String dictionaryPath) throws FileNotFoundException {
@@ -55,12 +60,16 @@ public class WildcardDatabase extends LevenshteinDatabase {
         }
     }
 
-    // These are placeholders
     public boolean areNeighbors(String word1, String word2) {
-        return false;
+        HashSet<String> word1Neighbors = this.findNeighbors(word1);
+        return word1Neighbors.contains(word2);
     }
 
     public HashSet<String> findNeighbors(String word) {
-        return null;
+        HashSet<String> returnSet = new HashSet();
+        for (String wildcard: WildcardDatabase.findWildcardIdentities(word)) {
+            returnSet.addAll(wildcardMap.get(wildcard));
+        }
+        return returnSet;
     };
 }
