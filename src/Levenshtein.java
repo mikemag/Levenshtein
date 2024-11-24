@@ -1,56 +1,39 @@
 import java.io.*;
-import java.util.*;
 
-public abstract class Levenshtein {
-    /** Set to true to display extra text for debugging. */
-    protected static final boolean PRINT_EXTRA = false;
+public class Levenshtein {
+    // Levenshtein DICTIONARY DATABASE FINDER WORD1 WORD2
+    public static void main(String[] args) throws FileNotFoundException {
+        String dictionaryPath = args[0];
 
-    protected LevenshteinDatabase database;
-
-    /**
-     * Reads a dictionary from a file, storing each word into the array, then sorting it, then determining lengthStartIndexes.
-     * @param filepath Name of the file to read from dictionary to.
-     * @throws IOException
-     */
-    public Levenshtein(LevenshteinDatabase initDatabase) throws IOException {
-        database = initDatabase;
-    }
-
-    /**
-     * @param w1 Starting word.
-     * @param w2 Ending word.
-     * @param startTime Approximate time (gotten from System.nanoTime()) that this function was called.
-     * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between w1 and w2
-     */
-    protected abstract TreeSet<LinkedList<String>> generatePaths(String w1, String w2, long startTime);
-
-    /**
-     * Converts paths to a String representation, where each path is on its own line and a change is denoted by [word1]-> [word2]
-     * For example, the paths between "dog" and "cat" would be:
-     * @param paths A TreeSet of LinkedLists of Strings, with each LinkedList representing a path between the start and end words.
-     * @param showNumber Whether to add a number before each path (to count how many paths there are).
-     * @param showDistance Whether to add the distance to the end of the String.
-     * @return The LinkedList of paths, represented as Strings.
-     */
-    public static String pathsToString(TreeSet<LinkedList<String>> paths, boolean showNumber, boolean showDistance) {
-        int pathNumber = 0;
-        StringBuilder pathsBuilder = new StringBuilder();
-        for (LinkedList<String> l : paths) {
-            if (showNumber) {
-                pathsBuilder.append(++pathNumber + ". ");
-            }
-            Iterator<String> listIter = l.iterator();
-            pathsBuilder.append(listIter.next());
-            while (listIter.hasNext()) {
-                pathsBuilder.append("-> " + listIter.next());
-            }
-            pathsBuilder.append("\n");
+        LevenshteinDatabase database;
+        if (args[1].equals("lazy")) {
+            database = new LazyDatabase(dictionaryPath);
+        } else if (args[1].equals("wildcard")) {
+            database = new WildcardDatabase(dictionaryPath);
+        } else {
+            throw new IllegalArgumentException("Illegal database type!");
         }
-        if (showDistance) {
-            Iterator<LinkedList<String>> pathIter = paths.iterator();
-            int distance = pathIter.next().size() - 1;
-            pathsBuilder.append("Distance: " + distance);
+
+        LevenshteinPathFinder finder;
+        if (args[2].equals("double")) {
+            finder = new FinderDualSided();
+        } else if (args[2].equals("single")) {
+            finder = new FinderSingleSided();
+        } else {
+            throw new IllegalArgumentException("Illegal finder algorithm type!");
         }
-        return pathsBuilder.toString();
+
+        String word1 = args[3];
+        String word2 = args[4];
+
+        long time1 = System.nanoTime();
+        System.out.println(LevenshteinPathFinder.pathsToString(finder.generatePaths(word1, word2, database, time1), true, true));
+        System.out.println("Done in " + (System.nanoTime() - time1)/1000000 + " milliseconds.");
+        long time2 = System.nanoTime();
+
+        for (int i = 0; i < 100; i++) {
+            LevenshteinPathFinder.pathsToString(finder.generatePaths(word1, word2, database, time2), false, false);
+        }
+        System.out.println("Average Time: " + (System.nanoTime() - time2)/100000000 + " milliseconds");
     }
 }
