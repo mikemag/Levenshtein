@@ -11,14 +11,6 @@ public class WildcardDatabase extends LevenshteinDatabase {
         //    System.out.println(Arrays.toString(identity));
         //}
         WildcardDatabase database = new WildcardDatabase(args[0]);
-        String[] dict = database.getDictionary();
-        database.wildcardMap = new HashMap();
-        long t1 = System.nanoTime() / 1000000;
-        for (int i = 0; i < dict.length; i++) {
-            database.putWildcards(dict[i], WildcardDatabase.findWildcardIdentities(dict[i]));
-        }
-        long t2 = System.nanoTime() / 1000000;
-        System.out.println("Init Time: " + (t2 - t1) + " ms");
         //System.out.println(database.wildcardMap.size());
         //System.out.println(database.wildcardMap.toString());
         //System.out.println(database.findNeighbors(args[1], new HashSet()).toString());
@@ -30,6 +22,14 @@ public class WildcardDatabase extends LevenshteinDatabase {
 
     public WildcardDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
+        String[] dictionary = this.getDictionary();
+        wildcardMap = new HashMap();
+        long t1 = System.nanoTime() / 1000000;
+        for (int i = 0; i < dictionary.length; i++) {
+            this.putWildcards(dictionary[i], WildcardDatabase.findWildcardIdentities(dictionary[i]));
+        }
+        long t2 = System.nanoTime() / 1000000;
+        System.out.println("Init Time: " + (t2 - t1) + " ms");
     }
 
     public static ArrayList<String> findWildcardIdentities(String word) {

@@ -1,39 +1,19 @@
 import java.io.*;
-import java.nio.file.*;
 import java.util.*;
 
 public abstract class Levenshtein {
     /** Set to true to display extra text for debugging. */
     protected static final boolean PRINT_EXTRA = false;
 
-    /**
-     * Dictionary of words, which is read from a file and stored as an array of LevenshteinNodes with previous being empty.
-     * This allows for each call of generatePaths to add.
-     */
-    protected final String[] dictionary;
-
-    /**
-     * The key represents the length of a word, and the value is the first index in dictionary of a word of that length.
-     */
-    protected final Map<Integer, Integer> lengthStartIndexes;
+    protected LevenshteinDatabase database;
 
     /**
      * Reads a dictionary from a file, storing each word into the array, then sorting it, then determining lengthStartIndexes.
      * @param filepath Name of the file to read from dictionary to.
      * @throws IOException
      */
-    public Levenshtein(String filepath) throws IOException {
-        ArrayList<String> listDictionary = new ArrayList();
-        lengthStartIndexes = new HashMap<>();
-        Scanner s = new Scanner(new File(filepath));
-        while(s.hasNext()) {
-            listDictionary.add(s.next());
-        }
-        dictionary = listDictionary.toArray(new String[0]);
-        Arrays.sort(dictionary, COMPARE_BY_LENGTH);
-        for (int i = 0; i < dictionary.length; i++) {
-            lengthStartIndexes.putIfAbsent(dictionary[i].length(), i);
-        }
+    public Levenshtein(LevenshteinDatabase initDatabase) throws IOException {
+        database = initDatabase;
     }
 
     /**
@@ -73,16 +53,4 @@ public abstract class Levenshtein {
         }
         return pathsBuilder.toString();
     }
-
-    /**
-     * Comparator which sorts strings first by length then their natural ordering, which is used to sort the dictionary.
-     */
-    private static final Comparator<String> COMPARE_BY_LENGTH = (o1, o2) -> {
-        int c = o1.length() - o2.length();
-        if (c == 0) {
-            return o1.compareTo(o2);
-        } else {
-            return c;
-        }
-    };
 }

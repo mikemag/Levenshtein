@@ -3,7 +3,7 @@ import java.util.*;
 
 public class LevenshteinSingleSided extends Levenshtein {
     public LevenshteinSingleSided(String pathname) throws IOException {
-        super(pathname);
+        super(new LazyDatabase(pathname));
     }
 
     /** This is just for testing. */
@@ -33,7 +33,7 @@ public class LevenshteinSingleSided extends Levenshtein {
         }
         LevenshteinGraph g = new LevenshteinGraph(w1);
         while (true) {
-            g.generateNewOuter(dictionary, lengthStartIndexes);
+            g.generateNewOuter(database);
             if (PRINT_EXTRA) {
                 System.out.println("Outer: " + g.outerSize());
                 System.out.println("Searched: " + g.searchedSize());

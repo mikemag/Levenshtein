@@ -26,13 +26,19 @@ public class LevenshteinGraph {
      * @param dictionary Array of all legal words.
      * @param lengthStartIndexes A map, with the values being the first index of a word in dictionary of a length equal to its key.
      */
-    public void generateNewOuter(String[] dictionary, Map<Integer, Integer> lengthStartIndexes) {
+    public void generateNewOuter(LevenshteinDatabase database) {
         HashMap<String, HashSet<String>> newOuter = new HashMap<>();
+
+        // The blacklist is a set of words that should be ignored since looping
+        // back to them will not lead a shortest Levenshtein path.
+        HashSet<String> neighborBlacklist = new HashSet<String>(outer.keySet());
+        neighborBlacklist.addAll(searched.keySet());
+
         for (String outerWord : outer.keySet()) {
-            HashSet<String> neighbors = findNeighbors(outerWord, dictionary, lengthStartIndexes);
+            HashSet<String> neighbors = database.findNeighbors(outerWord, neighborBlacklist);
             for (String neighbor : neighbors) {
-                HashSet<String> neighborValues = newOuter.get(neighbor);
-                if (neighborValues != null) {
+                HashSet<String> neighborsNeighbors = newOuter.get(neighbor);
+                if (neighborsNeighbors != null) {
                     newOuter.get(neighbor).add(outerWord);
                 } else {
                     newOuter.put(neighbor, new HashSet<>(Arrays.asList(outerWord)));
@@ -41,79 +47,6 @@ public class LevenshteinGraph {
         }
         searched.putAll(outer);
         outer = newOuter;
-    }
-
-    /**
-     * Finds the neighbors of w and returns it in a HashSet.
-     * Narrows the search bounds in a few ways. Firstly, it only checks w against legal words.
-     * Among those legal words, w is only checked against the ones with a length difference of less than one, as otherwise they cannot be neighboring.
-     * Neighbors already in the graph will never be added to the new outer, as paths that arrive at a word later than another path will always be longer.
-     * @param w Word to find the neighbors of.
-     * @param dictionary Array of all legal words.
-     * @param lengthStartIndexes A map, with the values being the first index of a word in dictionary of a length equal to its key.
-     * @return HashSet containing the neighbors of w.
-     */
-    public HashSet<String> findNeighbors(String w, String[] dictionary, Map<Integer, Integer> lengthStartIndexes) {
-        HashSet<String> neighbors = new HashSet<>();
-        int endIndex = lengthStartIndexes.getOrDefault(w.length() + 2, dictionary.length);
-        // Reduces the searching scope to only words with a length that allows them to be neighboring w
-        for (int i = lengthStartIndexes.getOrDefault(w.length() - 1, 0); i < endIndex; i++) {
-            // Ensures that neighbors already in the graph will not be added
-            if (areNeighboring(w, dictionary[i]) && !outer.containsKey(dictionary[i]) && !searched.containsKey(dictionary[i])) {
-                neighbors.add(dictionary[i]);
-            }
-        }
-        return neighbors;
-    }
-
-    /**
-     * Determines if two words are "neighboring" (If a single addition, removal, or change of letters will result in w).
-     * It does this by checking to see if both words share all but one letter, and these letters are in the same order in each word.
-     * It can determine this by traversing this word and comparing the current letter to the front of n.
-     * If the words have unequal length, it will ensure w1 is shorter and the w1 index will be reduced by one if a difference is found.
-     * This allows this method to have a worst-case big-O of O(n).
-     * @param w1 First word, the length difference between w1 and w2 must not be more than 1.
-     * @param w2 Second word, the length difference between w1 and w2 must not be more than 1.
-     * @return True if w1 and w2 are neighboring, false otherwise.
-     */
-    public static boolean areNeighboring(String w1, String w2) {
-        int w1l = w1.length();
-        int w2l = w2.length();
-        int lengthDifference = w1l - w2l;
-        boolean foundDifference = false;
-        // Checks to see if the words are neighboring if they are of the same length
-        if (lengthDifference == 0) {
-            for (int i = 0; i < w1l; i++) {
-                if (w1.charAt(i) != w2.charAt(i)) {
-                    if (foundDifference) {
-                        return false;
-                    } else {
-                        foundDifference = true;
-                    }
-                }
-            }
-            // If a difference was never found, the words are equal, and false is still returned
-            return foundDifference;
-        }
-        // Swaps the w1 and w2 if w1 is longer than w2, guaranteeing that w1 will be shorter after this
-        if (lengthDifference > 0) {
-            String t = w2;
-            w2 = w1;
-            w1 = t;
-            w1l = w2l;
-        }
-        // Checks to see if the words are neighboring if the first one is shorter than the second one
-        for (int i = 0, w2Index = 0; i < w1l; i++, w2Index++) {
-            if (w1.charAt(i) != w2.charAt(w2Index)) {
-                if (foundDifference) {
-                    return false;
-                } else {
-                    foundDifference = true;
-                    i--;
-                }
-            }
-        }
-        return true;
     }
 
     /**

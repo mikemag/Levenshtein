@@ -12,10 +12,10 @@ public class LevenshteinDualSided extends Levenshtein {
         System.out.println(Levenshtein.pathsToString(test.generatePaths(w1, w2, time1), false, false));
         System.out.println("Done in " + (System.nanoTime() - time1)/1000000 + " milliseconds.");
         long time2 = System.nanoTime();
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 100; i++) {
             Levenshtein.pathsToString(test.generatePaths(w1, w2, time2), false, false);
         }
-        System.out.println("Average Time: " + (System.nanoTime() - time2)/500000000 + " milliseconds");
+        System.out.println("Average Time: " + (System.nanoTime() - time2)/100000000 + " milliseconds");
     }
 
     /**
@@ -25,7 +25,7 @@ public class LevenshteinDualSided extends Levenshtein {
      * @throws IOException
      */
     public LevenshteinDualSided(String filepath) throws IOException {
-        super(filepath);
+        super(new WildcardDatabase(filepath));
     }
 
     /**
@@ -48,9 +48,9 @@ public class LevenshteinDualSided extends Levenshtein {
             int g1OSize = g1.outerSize();
             int g2OSize = g2.outerSize();
             if (g1OSize <= g2OSize) {
-                g1.generateNewOuter(dictionary, lengthStartIndexes);
+                g1.generateNewOuter(database);
             } else {
-                g2.generateNewOuter(dictionary, lengthStartIndexes);
+                g2.generateNewOuter(database);
             }
             if (PRINT_EXTRA) {
                 System.out.println("Start Outer: " + g1OSize);
