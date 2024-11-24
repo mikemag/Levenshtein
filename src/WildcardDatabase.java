@@ -9,9 +9,12 @@ public class WildcardDatabase extends LevenshteinDatabase {
         WildcardDatabase database = new WildcardDatabase(args[0]);
         String[] dict = database.getDictionary();
         database.wildcardMap = new HashMap();
+        long t1 = System.nanoTime() / 1000000;
         for (int i = 0; i < dict.length; i++) {
             database.putWildcards(dict[i], WildcardDatabase.findWildcardIdentities(dict[i]));
         }
+        long t2 = System.nanoTime() / 1000000;
+        System.out.println("Init Time: " + (t2 - t1) + " ms");
         //System.out.println(database.wildcardMap.toString());
         System.out.println(database.findNeighbors(args[1]).toString());
         System.out.println(database.findNeighbors(args[2]).toString());
@@ -26,26 +29,23 @@ public class WildcardDatabase extends LevenshteinDatabase {
 
     public static ArrayList<String> findWildcardIdentities(String word) {
         ArrayList<String> returnIdentities = new ArrayList();
-        ArrayList<Character> cardBuilder = new ArrayList(word.length());
-        for (int i = 0; i < word.length(); i++) {
-            cardBuilder.add(word.charAt(i));
-        }
+        StringBuilder cardBuilder = new StringBuilder(word);
 
-        cardBuilder.set(0, '*');
-        returnIdentities.add(Arrays.toString(cardBuilder.toArray()));
+        cardBuilder.setCharAt(0, '*');
+        returnIdentities.add(cardBuilder.toString());
         for (int i = 1; i < word.length(); i++) {
-            cardBuilder.set(i - 1, word.charAt(i - 1));
-            cardBuilder.set(i, '*');
-            returnIdentities.add(Arrays.toString(cardBuilder.toArray()));
+            cardBuilder.setCharAt(i - 1, word.charAt(i - 1));
+            cardBuilder.setCharAt(i, '*');
+            returnIdentities.add(cardBuilder.toString());
         }
 
-        cardBuilder.set(cardBuilder.size() - 1, word.charAt(cardBuilder.size() - 1));
-        cardBuilder.add(0, '*');
-        returnIdentities.add(Arrays.toString(cardBuilder.toArray()));
-        for (int i = 1; i <= word.length(); i++) {
-            cardBuilder.set(i - 1, word.charAt(i - 1));
-            cardBuilder.set(i, '*');
-            returnIdentities.add(Arrays.toString(cardBuilder.toArray()));
+        cardBuilder.append('*');
+        cardBuilder.setCharAt(word.length() - 1, word.charAt(word.length() - 1));
+        returnIdentities.add(cardBuilder.toString());
+        for (int i = word.length() ; i > 0; i--) {
+            cardBuilder.setCharAt(i, word.charAt(i - 1));
+            cardBuilder.setCharAt(i - 1, '*');
+            returnIdentities.add(cardBuilder.toString());
         }
 
         return returnIdentities;
