@@ -12,8 +12,21 @@ public class WildcardDatabase extends LevenshteinDatabase {
         for (int i = 0; i < dictionary.length; i++) {
             this.putEachWildcard(dictionary[i]);
         }
+
+        trimWildcards();
     }
 
+    public ArrayList<String> localWildcardIdentities(String word) {
+        ArrayList<String> identities = new ArrayList();
+
+        addEachWildcard(word, identities, (wordToAdd, wildcardIdentity, 
+                wildcardListObject) -> {
+            if (wildcardMap.containsKey(wildcardIdentity)) {
+                ((ArrayList<String>)wildcardListObject).add(wildcardIdentity);
+            }
+        });
+        return identities;
+    }
 
     public static ArrayList<String> allWildcardIdentities(String word) {
         ArrayList<String> identities = new ArrayList();
@@ -64,13 +77,25 @@ public class WildcardDatabase extends LevenshteinDatabase {
 
     public HashSet<String> findNeighbors(String word, HashSet<String> blacklist) {
         HashSet<String> returnSet = new HashSet();
-        for (String wildcard : WildcardDatabase.findWildcardIdentities(word)) {
+
+        for (String wildcard : this.localWildcardIdentities(word)) {
             returnSet.addAll(wildcardMap.get(wildcard));
             returnSet.removeAll(blacklist);
         }
         return returnSet;
     };
 
+    private void trimWildcards() {
+        Iterator<Map.Entry<String, HashSet<String>>> wildcardIterator = wildcardMap.entrySet().iterator();
+
+        while (wildcardIterator.hasNext()) {
+            Map.Entry<String, HashSet<String>> entry = wildcardIterator.next();
+
+            if (entry.getValue().size() == 1) {
+                wildcardIterator.remove();
+            }
+        }
+    }
 }
 
 @FunctionalInterface
