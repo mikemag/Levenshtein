@@ -4,32 +4,13 @@ import java.util.*;
 public class WildcardDatabase extends LevenshteinDatabase {
     private HashMap<String, HashSet<String>> wildcardMap;
 
-    // This is for testing
-    public static void main (String args[]) throws FileNotFoundException {
-        //ArrayList<char[]> printList = WildcardDatabase.findWildcardIdentities(args[0]);
-        //for (char[] identity : printList) {
-        //    System.out.println(Arrays.toString(identity));
-        //}
-        WildcardDatabase database = new WildcardDatabase(args[0]);
-        //System.out.println(database.wildcardMap.size());
-        //System.out.println(database.wildcardMap.toString());
-        //System.out.println(database.findNeighbors(args[1], new HashSet()).toString());
-        //System.out.println(database.findNeighbors(args[2], new HashSet()).toString());
-        //System.out.println(database.findNeighbors(args[3], new HashSet()).toString());
-        //System.out.println(database.areNeighbors(args[1], args[2]));
-        //System.out.println(database.areNeighbors(args[1], args[3]));
-    }
-
     public WildcardDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
         String[] dictionary = this.getDictionary();
         wildcardMap = new HashMap();
-        long t1 = System.nanoTime() / 1000000;
         for (int i = 0; i < dictionary.length; i++) {
             this.putWildcards(dictionary[i], WildcardDatabase.findWildcardIdentities(dictionary[i]));
         }
-        long t2 = System.nanoTime() / 1000000;
-        System.out.println("Init Time: " + (t2 - t1) + " ms");
     }
 
     public static ArrayList<String> findWildcardIdentities(String word) {
