@@ -88,11 +88,10 @@ public class WildcardDatabase extends LevenshteinDatabase {
     };
 
     private void initializeWildcardMap() {
-        String[] dictionary = this.getDictionary();
         wildcardMap = new HashMap();
 
-        for (int i = 0; i < dictionary.length; i++) {
-            this.putEachWildcard(dictionary[i]);
+        for (int i = 0; i < this.dictionary.length; i++) {
+            this.putEachWildcard(this.dictionary[i]);
         }
         
         Iterator<Map.Entry<String, HashSet<String>>> wildcardIterator = wildcardMap.entrySet().iterator();

@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 public abstract class LevenshteinDatabase {
-    private final String[] dictionary;
+    public final String[] dictionary;
 
     protected LevenshteinDatabase(String dictionarySourcePath) throws FileNotFoundException {
         dictionary = makeDictionary(dictionarySourcePath);
@@ -30,15 +30,6 @@ public abstract class LevenshteinDatabase {
 
         return dictionaryList.toArray(new String[0]);
     }
-
-    /**
-     * Returns the dictionary of all valid words in the database. 
-     *
-     * @return the dictionary
-     */
-    public final String[] getDictionary() {
-        return dictionary;
-    };
 
     /**
      * Returns the set all neighbors of a word, excluding any

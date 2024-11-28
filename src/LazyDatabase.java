@@ -6,11 +6,10 @@ public class LazyDatabase extends LevenshteinDatabase {
 
     public LazyDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
-        String[] dictionary = this.getDictionary();
 
         lengthStartIndexes = new HashMap<>();
-        for (int i = 0; i < dictionary.length; i++) {
-            lengthStartIndexes.putIfAbsent(dictionary[i].length(), i);
+        for (int i = 0; i < this.dictionary.length; i++) {
+            lengthStartIndexes.putIfAbsent(this.dictionary[i].length(), i);
         }
     }
 
@@ -19,15 +18,14 @@ public class LazyDatabase extends LevenshteinDatabase {
     }
 
     public HashSet<String> findNeighbors(String w, HashSet<String> blacklist) {
-        String[] dictionary = this.getDictionary();
         HashSet<String> neighbors = new HashSet<>();
 
         int endIndex = lengthStartIndexes.getOrDefault(w.length() + 2, dictionary.length);
         // Reduces the searching scope to only words with a length that allows them to be neighboring w
         for (int i = lengthStartIndexes.getOrDefault(w.length() - 1, 0); i < endIndex; i++) {
             // Ensures that neighbors already in the graph will not be added
-            if (areNeighboring(w, dictionary[i]) && !blacklist.contains(dictionary[i])) {
-                neighbors.add(dictionary[i]);
+            if (areNeighboring(w, this.dictionary[i]) && !blacklist.contains(dictionary[i])) {
+                neighbors.add(this.dictionary[i]);
             }
         }
         return neighbors;
