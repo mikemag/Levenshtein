@@ -8,41 +8,52 @@ public class WildcardDatabase extends LevenshteinDatabase {
         super(dictionaryPath);
         String[] dictionary = this.getDictionary();
         wildcardMap = new HashMap();
+
         for (int i = 0; i < dictionary.length; i++) {
-            this.putWildcards(dictionary[i], WildcardDatabase.findWildcardIdentities(dictionary[i]));
+            this.putEachWildcard(dictionary[i]);
         }
     }
 
-    public static ArrayList<String> findWildcardIdentities(String word) {
-        ArrayList<String> returnIdentities = new ArrayList();
+
+    public static ArrayList<String> allWildcardIdentities(String word) {
+        ArrayList<String> identities = new ArrayList();
+
+        addEachWildcard(word, identities, (wordToAdd, wildcardIdentity, 
+                wildcardMapObject) -> {
+            ((ArrayList<String>)wildcardMapObject).add(wildcardIdentity);
+        });
+        return identities;
+    };
+
+    private void putEachWildcard(String word) {
+        addEachWildcard(word, wildcardMap, (wordToAdd, wildcardIdentity, 
+                wildcardMapObject) -> {
+            HashMap<String, HashSet<String>> wildcardMap = (HashMap<String, HashSet<String>>)wildcardMapObject;
+
+            wildcardMap.putIfAbsent(wildcardIdentity, new HashSet<>());
+            wildcardMap.get(wildcardIdentity).add(wordToAdd.toString());
+        });
+    }
+
+    private static void addEachWildcard(String word, Object dataStructure, wildcardDataStructureAdder wildcardDataStructureAdder) {
         StringBuilder cardBuilder = new StringBuilder(word);
         int wordLength = word.length();
 
         cardBuilder.setCharAt(0, '*');
-        returnIdentities.add(cardBuilder.toString());
+        wildcardDataStructureAdder.addIdentityToStructure(word, cardBuilder.toString(), dataStructure);
         for (int i = 1; i < wordLength; i++) {
             cardBuilder.setCharAt(i - 1, word.charAt(i - 1));
             cardBuilder.setCharAt(i, '*');
-            returnIdentities.add(cardBuilder.toString());
+            wildcardDataStructureAdder.addIdentityToStructure(word, cardBuilder.toString(), dataStructure);
         }
 
         cardBuilder.append('*');
         cardBuilder.setCharAt(wordLength - 1, word.charAt(wordLength - 1));
-        returnIdentities.add(cardBuilder.toString());
+        wildcardDataStructureAdder.addIdentityToStructure(word, cardBuilder.toString(), dataStructure);
         for (int i = wordLength; i > 0; i--) {
             cardBuilder.setCharAt(i, word.charAt(i - 1));
             cardBuilder.setCharAt(i - 1, '*');
-            returnIdentities.add(cardBuilder.toString());
-        }
-        return returnIdentities;
-    }
-
-    private void putWildcards(String word, ArrayList<String> wildcards) {
-        for (String wildcard: wildcards) {
-            if (!wildcardMap.containsKey(wildcard)) {
-                wildcardMap.put(wildcard, new HashSet<String>());
-            }
-            wildcardMap.get(wildcard).add(word);
+            wildcardDataStructureAdder.addIdentityToStructure(word, cardBuilder.toString(), dataStructure);
         }
     }
 
@@ -59,4 +70,10 @@ public class WildcardDatabase extends LevenshteinDatabase {
         }
         return returnSet;
     };
+
+}
+
+@FunctionalInterface
+interface wildcardDataStructureAdder {
+    void addIdentityToStructure(String word, String wildcardIdentity, Object dataStructure);
 }
