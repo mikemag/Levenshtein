@@ -104,6 +104,37 @@ public class WildcardDatabase extends LevenshteinDatabase {
             }
         }
     }
+
+    public String wildcardMapToString() {
+        TreeSet<String> mapKeys = new TreeSet(WildcardDatabase.COMPARE_BY_LENGTH);
+        mapKeys.addAll(wildcardMap.keySet());
+        StringBuilder mapBuilder = new StringBuilder();
+
+        for (String key : mapKeys) {
+            StringBuilder entryBuilder = new StringBuilder();
+            TreeSet<String> mapValue = new TreeSet(WildcardDatabase.COMPARE_BY_LENGTH);
+
+            mapValue.addAll(wildcardMap.get(key));
+            entryBuilder.append(key + " ->");
+
+            for (String word : mapValue) {
+                entryBuilder.append(" " + word);
+            }
+
+            mapBuilder.append(entryBuilder + "\n");
+        }
+
+        return mapBuilder.toString();
+    }
+
+    public static final Comparator<String> COMPARE_BY_LENGTH = (o1, o2) -> {
+        int delta = o1.length() - o2.length();
+        if (delta == 0) {
+            return o1.compareTo(o2);
+        } else {
+            return delta;
+        }
+    };
 }
 
 @FunctionalInterface
