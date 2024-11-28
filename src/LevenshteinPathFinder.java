@@ -24,6 +24,9 @@ public abstract class LevenshteinPathFinder {
     public static String pathsToString(TreeSet<LinkedList<String>> paths, boolean showNumber, boolean showDistance) {
         int pathNumber = 0;
         StringBuilder pathsBuilder = new StringBuilder();
+        if (paths == null) {
+            return "";
+        }
         for (LinkedList<String> l : paths) {
             if (showNumber) {
                 pathsBuilder.append(++pathNumber + ". ");
