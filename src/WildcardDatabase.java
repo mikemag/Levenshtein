@@ -2,18 +2,20 @@ import java.io.*;
 import java.util.*;
 
 public class WildcardDatabase extends LevenshteinDatabase {
-    private HashMap<String, HashSet<String>> wildcardMap;
+    protected HashMap<String, HashSet<String>> wildcardMap;
 
     public WildcardDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
-        String[] dictionary = this.getDictionary();
-        wildcardMap = new HashMap();
+        initializeWildcardMap();
 
-        for (int i = 0; i < dictionary.length; i++) {
-            this.putEachWildcard(dictionary[i]);
+        //System.out.println(this.wildcardMap.toString());
+    }
+
+    protected WildcardDatabase(String dictionaryPath, boolean initializeWildcardMap) throws FileNotFoundException {
+        super(dictionaryPath);
+        if (initializeWildcardMap) {
+            initializeWildcardMap();
         }
-
-        trimWildcards();
     }
 
     public ArrayList<String> localWildcardIdentities(String word) {
@@ -85,7 +87,14 @@ public class WildcardDatabase extends LevenshteinDatabase {
         return returnSet;
     };
 
-    private void trimWildcards() {
+    private void initializeWildcardMap() {
+        String[] dictionary = this.getDictionary();
+        wildcardMap = new HashMap();
+
+        for (int i = 0; i < dictionary.length; i++) {
+            this.putEachWildcard(dictionary[i]);
+        }
+        
         Iterator<Map.Entry<String, HashSet<String>>> wildcardIterator = wildcardMap.entrySet().iterator();
 
         while (wildcardIterator.hasNext()) {
