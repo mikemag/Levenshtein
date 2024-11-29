@@ -1,16 +1,19 @@
 import java.io.*;
 
 public class Levenshtein {
-    // Levenshtein DICTIONARY DATABASE FINDER WORD1 WORD2
+    // Levenshtein DICTIONARY DATABASE FINDER WORD1 WORD2 (WILDCARDMAP)
     public static void main(String[] args) throws FileNotFoundException {
         long time1 = System.nanoTime();
         String dictionaryPath = args[0];
 
         LevenshteinDatabase database;
+
         if (args[1].equals("lazy")) {
             database = new LazyDatabase(dictionaryPath);
         } else if (args[1].equals("wildcard")) {
             database = new WildcardDatabase(dictionaryPath);
+        } else if (args[1].equals("cache")) {
+            database = new CacheDatabase(dictionaryPath, args[5]);
         } else {
             throw new IllegalArgumentException("Illegal database type!");
         }
