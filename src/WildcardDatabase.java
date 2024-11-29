@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 public class WildcardDatabase extends LevenshteinDatabase {
-    protected HashMap<String, HashSet<String>> wildcardMap;
+    protected HashMap<String, HashSet<Character>> wildcardMap;
 
     public WildcardDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
@@ -21,7 +21,7 @@ public class WildcardDatabase extends LevenshteinDatabase {
     public ArrayList<String> localWildcardIdentities(String word) {
         ArrayList<String> identities = new ArrayList();
 
-        addEachWildcard(word, identities, (wordToAdd, wildcardIdentity, 
+        addEachWildcard(word, identities, (wildcardSubstitute, wildcardIdentity, 
                 wildcardListObject) -> {
             if (wildcardMap.containsKey(wildcardIdentity)) {
                 ((ArrayList<String>)wildcardListObject).add(wildcardIdentity);
@@ -33,7 +33,7 @@ public class WildcardDatabase extends LevenshteinDatabase {
     public static ArrayList<String> allWildcardIdentities(String word) {
         ArrayList<String> identities = new ArrayList();
 
-        addEachWildcard(word, identities, (wordToAdd, wildcardIdentity, 
+        addEachWildcard(word, identities, (wildcardSubstitute, wildcardIdentity, 
                 wildcardMapObject) -> {
             ((ArrayList<String>)wildcardMapObject).add(wildcardIdentity);
         });
@@ -41,12 +41,12 @@ public class WildcardDatabase extends LevenshteinDatabase {
     };
 
     private void putEachWildcard(String word) {
-        addEachWildcard(word, wildcardMap, (wordToAdd, wildcardIdentity, 
+        addEachWildcard(word, wildcardMap, (wildcardSubstitute, wildcardIdentity, 
                 wildcardMapObject) -> {
-            HashMap<String, HashSet<String>> wildcardMap = (HashMap<String, HashSet<String>>)wildcardMapObject;
+            HashMap<String, HashSet<Character>> map = (HashMap<String, HashSet<Character>>)wildcardMapObject;
 
-            wildcardMap.putIfAbsent(wildcardIdentity, new HashSet<>());
-            wildcardMap.get(wildcardIdentity).add(wordToAdd.toString());
+            map.putIfAbsent(wildcardIdentity, new HashSet<>());
+            map.get(wildcardIdentity).add(wildcardSubstitute);
         });
     }
 
@@ -55,20 +55,20 @@ public class WildcardDatabase extends LevenshteinDatabase {
         int wordLength = word.length();
 
         cardBuilder.setCharAt(0, '*');
-        wildcardDataStructureAdder.addIdentityToStructure(word, cardBuilder.toString(), dataStructure);
+        wildcardDataStructureAdder.addIdentityToStructure(word.charAt(0), cardBuilder.toString(), dataStructure);
         for (int i = 1; i < wordLength; i++) {
             cardBuilder.setCharAt(i - 1, word.charAt(i - 1));
             cardBuilder.setCharAt(i, '*');
-            wildcardDataStructureAdder.addIdentityToStructure(word, cardBuilder.toString(), dataStructure);
+            wildcardDataStructureAdder.addIdentityToStructure(word.charAt(i), cardBuilder.toString(), dataStructure);
         }
 
         cardBuilder.append('*');
         cardBuilder.setCharAt(wordLength - 1, word.charAt(wordLength - 1));
-        wildcardDataStructureAdder.addIdentityToStructure(word, cardBuilder.toString(), dataStructure);
+        wildcardDataStructureAdder.addIdentityToStructure('0', cardBuilder.toString(), dataStructure);
         for (int i = wordLength; i > 0; i--) {
             cardBuilder.setCharAt(i, word.charAt(i - 1));
             cardBuilder.setCharAt(i - 1, '*');
-            wildcardDataStructureAdder.addIdentityToStructure(word, cardBuilder.toString(), dataStructure);
+            wildcardDataStructureAdder.addIdentityToStructure('0', cardBuilder.toString(), dataStructure);
         }
     }
 
@@ -81,7 +81,9 @@ public class WildcardDatabase extends LevenshteinDatabase {
         HashSet<String> returnSet = new HashSet();
 
         for (String wildcard : this.localWildcardIdentities(word)) {
-            returnSet.addAll(wildcardMap.get(wildcard));
+            for (Character character : wildcardMap.get(wildcard)) {
+                returnSet.add(wildcardMapValueToString(wildcard, character));
+            }
             returnSet.removeAll(blacklist);
         }
         return returnSet;
@@ -94,10 +96,10 @@ public class WildcardDatabase extends LevenshteinDatabase {
             this.putEachWildcard(this.dictionary[i]);
         }
         
-        Iterator<Map.Entry<String, HashSet<String>>> wildcardIterator = wildcardMap.entrySet().iterator();
+        Iterator<Map.Entry<String, HashSet<Character>>> wildcardIterator = wildcardMap.entrySet().iterator();
 
         while (wildcardIterator.hasNext()) {
-            Map.Entry<String, HashSet<String>> entry = wildcardIterator.next();
+            Map.Entry<String, HashSet<Character>> entry = wildcardIterator.next();
 
             if (entry.getValue().size() == 1) {
                 wildcardIterator.remove();
@@ -105,20 +107,31 @@ public class WildcardDatabase extends LevenshteinDatabase {
         }
     }
 
+    protected String wildcardMapValueToString(String key, Character value) {
+        for (int i = 0; i < key.length(); i++) {
+            if (key.charAt(i) == '*') {
+                StringBuilder returnBuilder = new StringBuilder(key);
+                if (value != '0') {
+                    returnBuilder.replace(i, i + 1, value.toString());
+                } else {
+                    returnBuilder.deleteCharAt(i);
+                };
+                return returnBuilder.toString();
+            }
+        }
+        throw new IllegalArgumentException("Key contains no asterisk (*) character");
+    }
+
     public String wildcardMapToString() {
-        TreeSet<String> mapKeys = new TreeSet(WildcardDatabase.COMPARE_BY_LENGTH);
-        mapKeys.addAll(wildcardMap.keySet());
         StringBuilder mapBuilder = new StringBuilder();
 
-        for (String key : mapKeys) {
+        for (Map.Entry<String, HashSet<Character>> entry : wildcardMap.entrySet()) {
             StringBuilder entryBuilder = new StringBuilder();
-            TreeSet<String> mapValue = new TreeSet(WildcardDatabase.COMPARE_BY_LENGTH);
 
-            mapValue.addAll(wildcardMap.get(key));
-            entryBuilder.append(key + " ->");
+            entryBuilder.append(entry.getKey());
 
-            for (String word : mapValue) {
-                entryBuilder.append(" " + word);
+            for (Character value : new TreeSet<Character>(entry.getValue())) {
+                entryBuilder.append(" " + value.toString());
             }
 
             mapBuilder.append(entryBuilder + "\n");
@@ -139,5 +152,5 @@ public class WildcardDatabase extends LevenshteinDatabase {
 
 @FunctionalInterface
 interface wildcardDataStructureAdder {
-    void addIdentityToStructure(String word, String wildcardIdentity, Object dataStructure);
+    void addIdentityToStructure(Character wildcardSubstitute, String wildcardIdentity, Object dataStructure);
 }
