@@ -2,17 +2,17 @@ import java.io.*;
 import java.util.*;
 
 public class CacheDatabase extends WildcardDatabase {
-    private HashMap<String, HashSet<String>> neighborMap;
+    private final HashMap<String, HashSet<String>> neighborMap;
 
     CacheDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
 
-        initializeNeighborMap();
+        neighborMap = getInitializedNeighborMap();
     }
 
     CacheDatabase(String dictionaryPath, String wildcardMapPath) throws FileNotFoundException {
         super(dictionaryPath, false);
-        this.wildcardMap = new HashMap();
+
         Scanner input = new Scanner(new File(wildcardMapPath));
 
         while (input.hasNextLine()) {
@@ -30,7 +30,7 @@ public class CacheDatabase extends WildcardDatabase {
 
         input.close();
 
-        initializeNeighborMap();
+        neighborMap = getInitializedNeighborMap();
     }
 
     @Override
@@ -45,12 +45,15 @@ public class CacheDatabase extends WildcardDatabase {
         return findNeighbors(word1, new HashSet<String>()).contains(word2);
     }
 
-    private void initializeNeighborMap() {
-        neighborMap = new HashMap();
-        HashSet<String> emptyBlacklist = new HashSet();
+    private HashMap<String, HashSet<String>> getInitializedNeighborMap() {
+        HashMap<String, HashSet<String>> returnMap = new HashMap();
+        HashSet<String> emptyBlackList = new HashSet();
+
         for (String word : this.dictionary) {
-            neighborMap.put(word, super.findNeighbors(word, emptyBlacklist));
+            returnMap.put(word, super.findNeighbors(word, emptyBlackList));
         }
+
+        return returnMap;
     }
 
     public void wildcardMapToFile(File outFile) throws FileNotFoundException {

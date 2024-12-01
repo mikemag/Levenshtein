@@ -2,11 +2,11 @@ import java.io.*;
 import java.util.*;
 
 public class WildcardDatabase extends LevenshteinDatabase {
-    protected HashMap<String, HashSet<Character>> wildcardMap;
+    protected final HashMap<String, HashSet<Character>> wildcardMap;
 
     public WildcardDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
-        initializeWildcardMap();
+        wildcardMap = getInitializedWildcardMap();
 
         //System.out.println(this.wildcardMap.toString());
     }
@@ -14,11 +14,13 @@ public class WildcardDatabase extends LevenshteinDatabase {
     protected WildcardDatabase(String dictionaryPath, boolean initializeWildcardMap) throws FileNotFoundException {
         super(dictionaryPath);
         if (initializeWildcardMap) {
-            initializeWildcardMap();
+            wildcardMap = getInitializedWildcardMap();
+        } else {
+            wildcardMap = new HashMap();
         }
     }
 
-    public ArrayList<String> localWildcardIdentities(String word) {
+    public final ArrayList<String> localWildcardIdentities(String word) {
         ArrayList<String> identities = new ArrayList();
 
         addEachWildcard(word, identities, (wildcardSubstitute, wildcardIdentity, 
@@ -30,7 +32,7 @@ public class WildcardDatabase extends LevenshteinDatabase {
         return identities;
     }
 
-    public static ArrayList<String> allWildcardIdentities(String word) {
+    public static final ArrayList<String> allWildcardIdentities(String word) {
         ArrayList<String> identities = new ArrayList();
 
         addEachWildcard(word, identities, (wildcardSubstitute, wildcardIdentity, 
@@ -40,8 +42,8 @@ public class WildcardDatabase extends LevenshteinDatabase {
         return identities;
     };
 
-    private void putEachWildcard(String word) {
-        addEachWildcard(word, wildcardMap, (wildcardSubstitute, wildcardIdentity, 
+    private static void putEachWildcard(String word, HashMap<String, HashSet<Character>> destination) {
+        addEachWildcard(word, destination, (wildcardSubstitute, wildcardIdentity, 
                 wildcardMapObject) -> {
             HashMap<String, HashSet<Character>> map = (HashMap<String, HashSet<Character>>)wildcardMapObject;
 
@@ -89,14 +91,14 @@ public class WildcardDatabase extends LevenshteinDatabase {
         return returnSet;
     };
 
-    private void initializeWildcardMap() {
-        wildcardMap = new HashMap();
+    private HashMap<String, HashSet<Character>> getInitializedWildcardMap() {
+        HashMap<String, HashSet<Character>> returnMap = new HashMap();
 
         for (int i = 0; i < this.dictionary.length; i++) {
-            this.putEachWildcard(this.dictionary[i]);
+            WildcardDatabase.putEachWildcard(this.dictionary[i], returnMap);
         }
         
-        Iterator<Map.Entry<String, HashSet<Character>>> wildcardIterator = wildcardMap.entrySet().iterator();
+        Iterator<Map.Entry<String, HashSet<Character>>> wildcardIterator = returnMap.entrySet().iterator();
 
         while (wildcardIterator.hasNext()) {
             Map.Entry<String, HashSet<Character>> entry = wildcardIterator.next();
@@ -105,9 +107,11 @@ public class WildcardDatabase extends LevenshteinDatabase {
                 wildcardIterator.remove();
             }
         }
+
+        return returnMap;
     }
 
-    protected String wildcardMapValueToString(String key, Character value) {
+    protected static final String wildcardMapValueToString(String key, Character value) {
         for (int i = 0; i < key.length(); i++) {
             if (key.charAt(i) == '*') {
                 StringBuilder returnBuilder = new StringBuilder(key);
@@ -122,7 +126,7 @@ public class WildcardDatabase extends LevenshteinDatabase {
         throw new IllegalArgumentException("Key contains no asterisk (*) character");
     }
 
-    public String wildcardMapToString() {
+    public final String wildcardMapToString() {
         StringBuilder mapBuilder = new StringBuilder();
 
         for (Map.Entry<String, HashSet<Character>> entry : wildcardMap.entrySet()) {
