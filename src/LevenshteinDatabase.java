@@ -32,17 +32,12 @@ public abstract class LevenshteinDatabase {
     }
 
     /**
-     * Returns the set all neighbors of a word, excluding any
-     * words in the blacklist.
-     * The blacklist is useful for ignoring a list of already-
-     * processed words, as an optimal Levenshtein path should never
-     * loop back on itself.
+     * Returns the set all neighbors of a word.
      *
      * @param word the word to find the neighbors of
-     * @param blacklist set of words to ignore
      * @return the set of neighbors
      */
-    public abstract HashSet<String> findNeighbors(String word, HashSet<String> blacklist);
+    public abstract HashSet<String> findNeighbors(String word);
 
     /**
      * Returns true if and only if two words are neighboring.

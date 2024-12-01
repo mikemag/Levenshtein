@@ -35,7 +35,8 @@ public class LevenshteinGraph {
         neighborBlacklist.addAll(searched.keySet());
 
         for (String outerWord : outer.keySet()) {
-            HashSet<String> neighbors = database.findNeighbors(outerWord, neighborBlacklist);
+            HashSet<String> neighbors = database.findNeighbors(outerWord);
+            neighbors.removeAll(neighborBlacklist);
             for (String neighbor : neighbors) {
                 HashSet<String> neighborsNeighbors = newOuter.get(neighbor);
                 if (neighborsNeighbors != null) {

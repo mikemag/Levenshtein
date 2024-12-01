@@ -17,14 +17,14 @@ public class LazyDatabase extends LevenshteinDatabase {
         return areNeighboring(word1, word2);
     }
 
-    public HashSet<String> findNeighbors(String w, HashSet<String> blacklist) {
+    public HashSet<String> findNeighbors(String w) {
         HashSet<String> neighbors = new HashSet<>();
 
         int endIndex = lengthStartIndexes.getOrDefault(w.length() + 2, dictionary.length);
         // Reduces the searching scope to only words with a length that allows them to be neighboring w
         for (int i = lengthStartIndexes.getOrDefault(w.length() - 1, 0); i < endIndex; i++) {
             // Ensures that neighbors already in the graph will not be added
-            if (areNeighboring(w, this.dictionary[i]) && !blacklist.contains(dictionary[i])) {
+            if (areNeighboring(w, this.dictionary[i])) {
                 neighbors.add(this.dictionary[i]);
             }
         }

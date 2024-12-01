@@ -34,23 +34,21 @@ public class CacheDatabase extends WildcardDatabase {
     }
 
     @Override
-    public HashSet<String> findNeighbors(String word, HashSet<String> blacklist) { 
+    public HashSet<String> findNeighbors(String word) { 
         HashSet<String> returnSet = neighborMap.get(word);
-        returnSet.removeAll(blacklist);
         return returnSet;
     }
 
     @Override
     public boolean areNeighbors(String word1, String word2) {
-        return findNeighbors(word1, new HashSet<String>()).contains(word2);
+        return findNeighbors(word1).contains(word2);
     }
 
     private HashMap<String, HashSet<String>> getInitializedNeighborMap() {
         HashMap<String, HashSet<String>> returnMap = new HashMap();
-        HashSet<String> emptyBlackList = new HashSet();
 
         for (String word : this.dictionary) {
-            returnMap.put(word, super.findNeighbors(word, emptyBlackList));
+            returnMap.put(word, super.findNeighbors(word));
         }
 
         return returnMap;
