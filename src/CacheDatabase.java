@@ -35,8 +35,7 @@ public class CacheDatabase extends WildcardDatabase {
 
     @Override
     public HashSet<String> findNeighbors(String word) { 
-        HashSet<String> returnSet = neighborMap.get(word);
-        return returnSet;
+        return new HashSet<String>(neighborMap.get(word));
     }
 
     @Override
