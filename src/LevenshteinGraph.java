@@ -180,6 +180,9 @@ public class LevenshteinGraph {
         Iterator<String> i1 = o1.iterator();
         Iterator<String> i2 = o2.iterator();
         while (i1.hasNext()) {
+            if (!i2.hasNext()) {
+                return 1;
+            }
             int c = i1.next().compareTo(i2.next());
             if (c != 0) {
                 return c;

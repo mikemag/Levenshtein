@@ -33,13 +33,18 @@ public class Levenshtein {
         String word2 = args[4];
 
         long time3 = System.nanoTime();
-        System.out.println(LevenshteinPathFinder.pathsToString(finder.generatePaths(word1, word2, database, time1), true, true));
+        //System.out.println(LevenshteinPathFinder.pathsToString(finder.generatePaths(word1, word2, database, time1), true, true));
+
+        TreeSet<LinkedList<String>> pathSet = new TreeSet(LevenshteinGraph.PATH_COMPARATOR);
+        pathSet.addAll(ConnectedGraph.allPathsIn(word1, database));
+        System.out.println(LevenshteinPathFinder.pathsToString(pathSet, false, false));
+
         System.out.println("Done in " + (System.nanoTime() - time3)/1000 + " microseconds.");
         long time4 = System.nanoTime();
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             LevenshteinPathFinder.pathsToString(finder.generatePaths(word1, word2, database, time2), false, false);
         }
-        System.out.println("Average Time: " + (System.nanoTime() - time4)/100000 + " microseconds");
+        System.out.println("Average Time: " + (System.nanoTime() - time4)/1000000 + " microseconds");
     }
 }
