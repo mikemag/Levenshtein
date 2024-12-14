@@ -1,8 +1,14 @@
 import java.util.*;
 
 public class LevenshteinGraph {
-    private HashMap<String, HashSet<String>> searched;
     private HashMap<String, HashSet<String>> outer;
+
+    /**
+     * Searched is used both for reconstructing paths after finishing the
+     * breadth-first search and ensuring each word is contained in only one
+     * layer.
+     */
+    private HashMap<String, HashSet<String>> searched;
 
     /**
      * Initializes the graph, with searched being completely empty and outer only containing the root word with no previous.
@@ -29,15 +35,16 @@ public class LevenshteinGraph {
     public void generateNewOuter(LevenshteinDatabase database) {
         HashMap<String, HashSet<String>> newOuter = new HashMap<>();
 
-        // The blacklist is a set of words that should be ignored since looping
-        // back to them will not lead a shortest Levenshtein path.
-        HashSet<String> neighborBlacklist = new HashSet<String>(outer.keySet());
-        neighborBlacklist.addAll(searched.keySet());
+        searched.putAll(outer);
 
         for (String outerWord : outer.keySet()) {
             HashSet<String> neighbors = database.findNeighbors(outerWord);
-            neighbors.removeAll(neighborBlacklist);
+
             for (String neighbor : neighbors) {
+                if (searched.containsKey(neighbor)) {
+                    continue;
+                }
+
                 HashSet<String> neighborsNeighbors = newOuter.get(neighbor);
                 if (neighborsNeighbors != null) {
                     newOuter.get(neighbor).add(outerWord);
@@ -46,7 +53,7 @@ public class LevenshteinGraph {
                 }
             }
         }
-        searched.putAll(outer);
+
         outer = newOuter;
     }
 
