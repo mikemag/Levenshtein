@@ -20,7 +20,7 @@ public class CacheDatabase extends WildcardDatabase {
 
     @Override
     public HashSet<String> findNeighbors(String word) { 
-        return new HashSet<String>(neighborMap.get(word));
+        return neighborMap.get(word);
     }
 
     @Override
