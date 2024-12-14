@@ -13,7 +13,23 @@ public class CacheDatabase extends WildcardDatabase {
     CacheDatabase(String dictionaryPath, String wildcardMapPath) throws FileNotFoundException {
         super(dictionaryPath, false);
 
-        Scanner input = new Scanner(new File(wildcardMapPath));
+        fillWildcardMap(new File(wildcardMapPath));
+
+        neighborMap = getInitializedNeighborMap();
+    }
+
+    @Override
+    public HashSet<String> findNeighbors(String word) { 
+        return new HashSet<String>(neighborMap.get(word));
+    }
+
+    @Override
+    public boolean areNeighbors(String word1, String word2) {
+        return findNeighbors(word1).contains(word2);
+    }
+
+    private void fillWildcardMap(File inputFile) throws FileNotFoundException {
+        Scanner input = new Scanner(inputFile);
 
         while (input.hasNextLine()) {
             Scanner line = new Scanner(input.nextLine());
@@ -29,18 +45,6 @@ public class CacheDatabase extends WildcardDatabase {
         }
 
         input.close();
-
-        neighborMap = getInitializedNeighborMap();
-    }
-
-    @Override
-    public HashSet<String> findNeighbors(String word) { 
-        return new HashSet<String>(neighborMap.get(word));
-    }
-
-    @Override
-    public boolean areNeighbors(String word1, String word2) {
-        return findNeighbors(word1).contains(word2);
     }
 
     private HashMap<String, HashSet<String>> getInitializedNeighborMap() {
