@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 public class WildcardDatabase extends LevenshteinDatabase {
-    protected final HashMap<String, HashSet<Character>> wildcardMap;
+    protected final HashMap<String, ArrayList<Character>> wildcardMap;
 
     public WildcardDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
@@ -42,12 +42,12 @@ public class WildcardDatabase extends LevenshteinDatabase {
         return identities;
     };
 
-    private static void putEachWildcard(String word, HashMap<String, HashSet<Character>> destination) {
+    private static void putEachWildcard(String word, HashMap<String, ArrayList<Character>> destination) {
         addEachWildcard(word, destination, (wildcardSubstitute, wildcardIdentity, 
                 wildcardMapObject) -> {
-            HashMap<String, HashSet<Character>> map = (HashMap<String, HashSet<Character>>)wildcardMapObject;
+            HashMap<String, ArrayList<Character>> map = (HashMap<String, ArrayList<Character>>)wildcardMapObject;
 
-            map.putIfAbsent(wildcardIdentity, new HashSet<>());
+            map.putIfAbsent(wildcardIdentity, new ArrayList<>());
             map.get(wildcardIdentity).add(wildcardSubstitute);
         });
     }
@@ -91,17 +91,17 @@ public class WildcardDatabase extends LevenshteinDatabase {
         return returnSet;
     };
 
-    private HashMap<String, HashSet<Character>> getInitializedWildcardMap() {
-        HashMap<String, HashSet<Character>> returnMap = new HashMap();
+    private HashMap<String, ArrayList<Character>> getInitializedWildcardMap() {
+        HashMap<String, ArrayList<Character>> returnMap = new HashMap();
 
         for (int i = 0; i < this.dictionary.length; i++) {
             WildcardDatabase.putEachWildcard(this.dictionary[i], returnMap);
         }
         
-        Iterator<Map.Entry<String, HashSet<Character>>> wildcardIterator = returnMap.entrySet().iterator();
+        Iterator<Map.Entry<String, ArrayList<Character>>> wildcardIterator = returnMap.entrySet().iterator();
 
         while (wildcardIterator.hasNext()) {
-            Map.Entry<String, HashSet<Character>> entry = wildcardIterator.next();
+            Map.Entry<String, ArrayList<Character>> entry = wildcardIterator.next();
 
             if (entry.getValue().size() == 1) {
                 wildcardIterator.remove();
@@ -129,7 +129,7 @@ public class WildcardDatabase extends LevenshteinDatabase {
     public final String wildcardMapToString() {
         StringBuilder mapBuilder = new StringBuilder();
 
-        for (Map.Entry<String, HashSet<Character>> entry : wildcardMap.entrySet()) {
+        for (Map.Entry<String, ArrayList<Character>> entry : wildcardMap.entrySet()) {
             StringBuilder entryBuilder = new StringBuilder();
 
             entryBuilder.append(entry.getKey());

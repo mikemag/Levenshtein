@@ -34,7 +34,7 @@ public class CacheDatabase extends WildcardDatabase {
         while (input.hasNextLine()) {
             Scanner line = new Scanner(input.nextLine());
             String key = line.next();
-            HashSet<Character> value = new HashSet<Character>();
+            ArrayList<Character> value = new ArrayList();
 
             while (line.hasNext()) {
                 value.add(line.next().charAt(0));
