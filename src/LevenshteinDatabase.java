@@ -49,4 +49,40 @@ public abstract class LevenshteinDatabase {
      * @return if the neighbors are neighboring
      */
     public abstract boolean areNeighbors(String word1, String word2);
+
+    /**
+     * Finds the word at an index in the dictionary.
+     *
+     * @param wordIndex the index
+     * @return the word associated with it
+     */
+    public final String wordAt(int wordIndex) {
+        return dictionary[wordIndex];
+    }
+
+    /**
+     * Finds the index associated with a word using binary
+     * search.
+     *
+     * @param wordIndex the index
+     * @return the word associated with it
+     */
+    public final int getWordIndex(String word) {
+        return Arrays.binarySearch(dictionary, word, COMPARE_WORDS);
+    }
+
+    /**
+     * Compares words in the dictionary based first on their
+     * length then their letter. This can be used for searching
+     * or generating the dictionary.
+     */
+    public static final Comparator<String> COMPARE_WORDS = (o1, o2) -> {
+        int c = o1.length() - o2.length();
+
+        if (c == 0) {
+            return o1.compareTo(o2);
+        } else {
+            return c;
+        }
+    };
 }
