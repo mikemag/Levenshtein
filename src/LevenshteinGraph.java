@@ -58,63 +58,48 @@ public class LevenshteinGraph {
     }
 
     /**
-     * Recursively finds all paths between wordIndex1 and wordIndex2.
-     * TODO: Finish this
-     * @param w1 First word.
-     * @param w2 Second word.
-     * @param reversed If false, wordIndex1 -> wordIndex2 is returned. If true, wordIndex2 -> wordIndex1 is returned.
-     * @return All paths between wordIndex1 and wordIndex2, with each path being expressed a LinkedList of the words in the path, and the paths being stored in a TreeSet.
+     * Finds all paths between wordIndex1 and wordIndex2 after a breadth-first
+     * search has been completed.
+     *
+     * Does this by reading the values of the searched map (ArrayLists containing
+     * every previous word), adding each to a copy of the path and recursively
+     * calling the helper method with these copies, returning once the path has
+     * reached the its destination word.
+     *
+     * @param wordIndex1 first word index
+     * @param wordIndex2 second word index
+     * @param reversed if false, search from wordIndex1 -> wordIndex2
+     *                 if true, search from wordIndex2 -> wordIndex1
+     * @return all paths between wordIndex1 and wordIndex2
      */
     public TreeSet<LinkedList<Integer>> allPathsBetween(int wordIndex1, int wordIndex2, boolean reversed) {
         LinkedList<Integer> previous = new LinkedList<>(Arrays.asList(wordIndex2));
+        TreeSet<LinkedList<Integer>> toReturn = new TreeSet<>(PATH_COMPARATOR);
+
         if (wordIndex1 == wordIndex2) {
-            TreeSet<LinkedList<Integer>> toReturn = new TreeSet<>(PATH_COMPARATOR);
             toReturn.add(previous);
-            return toReturn;
+        } else if (reversed) {
+            allPathsBetween(toReturn, previous, wordIndex1, outer.get(wordIndex2), (i, p) -> p.addLast(i));
         } else {
-            return allPathsBetween(new TreeSet<>(PATH_COMPARATOR), previous, wordIndex1, reversed);
+            allPathsBetween(toReturn, previous, wordIndex1, outer.get(wordIndex2), (i, p) -> p.addFirst(i));
         }
+
+        return toReturn;
     }
-    public TreeSet<LinkedList<Integer>> allPathsBetween(TreeSet<LinkedList<Integer>> paths, LinkedList<Integer> currentPath, int root, boolean reversed) {
-        int currentWordIndex;
-        if (!reversed) {
-            currentWordIndex = currentPath.getFirst();
-        } else {
-            currentWordIndex = currentPath.getLast();
-        }
 
-        // On the first iteration (Where current word is wordIndex1 from the non-recursive call), currentWord will be in outer.
-        // After
-        HashSet<Integer> setToSearch;
-        if (outer.containsKey(currentWordIndex)) {
-            setToSearch = new HashSet<>(outer.get(currentWordIndex));
-        } else {
-            setToSearch = new HashSet<>(searched.get(currentWordIndex));
-        }
-
+    private void allPathsBetween(TreeSet<LinkedList<Integer>> paths, LinkedList<Integer> currentPath, int root, ArrayList<Integer> setToSearch, PathAdder pathAdder) {
         if (setToSearch.contains(root)) {
-            if (!reversed) {
-                currentPath.addFirst(root);
-            } else {
-                currentPath.addLast(root);
-            }
+            pathAdder.addToPath(root, currentPath);
             paths.add(currentPath);
-        } else {
-            if (!reversed) {
-                for (Integer wordIndex : setToSearch) {
-                    LinkedList<Integer> newPrevious = new LinkedList<>(currentPath);
-                    newPrevious.addFirst(wordIndex);
-                    paths = allPathsBetween(paths, newPrevious, root, reversed);
-                }
-            } else {
-                for (Integer wordIndex : setToSearch) {
-                    LinkedList<Integer> newPrevious = new LinkedList<>(currentPath);
-                    newPrevious.addLast(wordIndex);
-                    paths = allPathsBetween(paths, newPrevious, root, reversed);
-                }
-            }
+            return;
         }
-        return paths;
+
+        for (int wordIndex : setToSearch) {
+            LinkedList<Integer> newPrevious = new LinkedList<>(currentPath);
+
+            pathAdder.addToPath(wordIndex, newPrevious);
+            allPathsBetween(paths, newPrevious, root, searched.get(wordIndex), pathAdder);
+        }
     }
 
     /**
@@ -180,4 +165,9 @@ public class LevenshteinGraph {
     public String toString() {
         return "Outer: \n" + outer + "\nSearched: \n" + searched;
     }
+}
+
+@FunctionalInterface
+interface PathAdder {
+    void addToPath(int wordIndex, LinkedList<Integer> path);
 }
