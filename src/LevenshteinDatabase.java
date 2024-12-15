@@ -44,11 +44,11 @@ public abstract class LevenshteinDatabase {
      * While this shouldn't be needed for good Levenshtein
      * algorithms, it has been left as public.
      *
-     * @param word1 the first word
-     * @param word2 the the second word
+     * @param wordIndex1 the first word index
+     * @param wordIndex2 the second word index
      * @return if the neighbors are neighboring
      */
-    public abstract boolean areNeighbors(int wordIndex1, int word2);
+    public abstract boolean areNeighbors(int wordIndex1, int wordIndex2);
 
     /**
      * Finds the word at an index in the dictionary.
@@ -64,8 +64,8 @@ public abstract class LevenshteinDatabase {
      * Finds the index associated with a word using binary
      * search.
      *
-     * @param wordIndex the index
-     * @return the word associated with it
+     * @param word the word
+     * @return the index associated with it
      */
     public final int getWordIndex(String word) {
         return Arrays.binarySearch(dictionary, word, COMPARE_WORDS);
