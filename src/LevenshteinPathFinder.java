@@ -21,28 +21,33 @@ public abstract class LevenshteinPathFinder {
      * @param showDistance Whether to add the distance to the end of the String.
      * @return The LinkedList of paths, represented as Strings.
      */
-    public static String pathsToString(TreeSet<LinkedList<Integer>> paths, boolean showNumber, boolean showDistance) {
+    public static String pathsToString(TreeSet<LinkedList<Integer>> paths, LevenshteinDatabase database, boolean showNumber, boolean showDistance) {
         int pathNumber = 0;
         StringBuilder pathsBuilder = new StringBuilder();
+
         if (paths == null) {
             return "";
         }
-        for (LinkedList<Integer> l : paths) {
+
+        for (LinkedList<Integer> path : paths) {
             if (showNumber) {
                 pathsBuilder.append(++pathNumber + ". ");
             }
-            Iterator<Integer> listIter = l.iterator();
-            pathsBuilder.append(listIter.next());
-            while (listIter.hasNext()) {
-                pathsBuilder.append("-> " + listIter.next());
+
+            Iterator<Integer> pathIter = path.iterator();
+            pathsBuilder.append(database.wordAt(pathIter.next()));
+
+            while (pathIter.hasNext()) {
+                pathsBuilder.append("-> " + database.wordAt(pathIter.next()));
             }
             pathsBuilder.append("\n");
         }
+
         if (showDistance) {
-            Iterator<LinkedList<Integer>> pathIter = paths.iterator();
-            int distance = pathIter.next().size() - 1;
+            int distance = paths.first().size() - 1;
             pathsBuilder.append("Distance: " + distance);
         }
+
         return pathsBuilder.toString();
     }
 }

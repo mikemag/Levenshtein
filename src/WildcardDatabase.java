@@ -7,8 +7,6 @@ public class WildcardDatabase extends LevenshteinDatabase {
     public WildcardDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
         wildcardMap = getInitializedWildcardMap();
-
-        //System.out.println(this.wildcardMap.toString());
     }
 
     protected WildcardDatabase(String dictionaryPath, boolean initializeWildcardMap) throws FileNotFoundException {
