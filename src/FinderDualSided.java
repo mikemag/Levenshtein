@@ -35,8 +35,10 @@ public class FinderDualSided extends LevenshteinPathFinder {
             }
             if (graph1OSize == 0 || graph2OSize == 0) {
                 return null;
-            } else if (graph1.outerIntersects(graph2)) {
-                return graphsToPaths(graph1, graph2, wordIndex1, wordIndex2, graph1.getOuterIntersection(graph2));
+            } 
+            ArrayList<Integer> outerIntersection = LevenshteinGraph.outerIntersection(graph1, graph2);
+            if (outerIntersection.size() != 0) {
+                return graphsToPaths(graph1, graph2, wordIndex1, wordIndex2, outerIntersection);
             }
         }
     }
@@ -51,7 +53,7 @@ public class FinderDualSided extends LevenshteinPathFinder {
      * @param intersection Set of words which are shared between the outer layers of graph1 and graph2.
      * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between word1 and word2.
      */
-    private static TreeSet<LinkedList<Integer>> graphsToPaths(LevenshteinGraph graph1, LevenshteinGraph graph2, int wordIndex1, int wordIndex2, HashSet<Integer> intersection) {
+    private static TreeSet<LinkedList<Integer>> graphsToPaths(LevenshteinGraph graph1, LevenshteinGraph graph2, int wordIndex1, int wordIndex2, ArrayList<Integer> intersection) {
         TreeSet<LinkedList<Integer>> pathsToReturn = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
         TreeSet<LinkedList<Integer>> graph1Paths = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
         TreeSet<LinkedList<Integer>> graph2Paths = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);

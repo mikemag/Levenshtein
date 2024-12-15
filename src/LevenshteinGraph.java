@@ -127,34 +127,10 @@ public class LevenshteinGraph {
         return outer.containsKey(wordIndex);
     }
 
-    /**
-     * Checks if there is any word in both the outside of this and g.
-     * This method is for dual-sided levenshtein algorithms, where each layer is checked against the outer of another graph.
-     * @param g Graph to check against.
-     * @return If outer of this graph contains any words in the outer of the other graph.
-     */
-    public boolean outerIntersects(LevenshteinGraph g) {
-        HashMap<Integer, ArrayList<Integer>> outerCopy = outer;
-        HashMap<Integer, ArrayList<Integer>> otherOuter = g.outer;
-        // This ensures that outerCopy is the shorter of the two outer maps
-        // Iterating across the shorter map will decrease the number of checks it makes. Since containsKey() is O(1), this saves time.
-        if (outerCopy.keySet().size() > otherOuter.keySet().size()) {
-            HashMap<Integer, ArrayList<Integer>> temp = otherOuter;
-            otherOuter = outerCopy;
-            outerCopy = temp;
-        }
-        for (int w : outerCopy.keySet()) {
-            if (otherOuter.containsKey(w)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public HashSet<Integer> getOuterIntersection(LevenshteinGraph g) {
-        HashSet<Integer> intersection = new HashSet<>();
-        HashMap<Integer, ArrayList<Integer>> outerCopy = outer;
-        HashMap<Integer, ArrayList<Integer>> otherOuter = g.outer;
+    public static ArrayList<Integer> outerIntersection(LevenshteinGraph graph1, LevenshteinGraph graph2) {
+        ArrayList<Integer> intersection = new ArrayList();
+        HashMap<Integer, ArrayList<Integer>> outerCopy = graph1.outer;
+        HashMap<Integer, ArrayList<Integer>> otherOuter = graph2.outer;
 
         if (outerCopy.keySet().size() > otherOuter.keySet().size()) {
             HashMap<Integer, ArrayList<Integer>> temp = otherOuter;
