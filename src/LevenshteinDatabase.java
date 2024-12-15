@@ -32,12 +32,12 @@ public abstract class LevenshteinDatabase {
     }
 
     /**
-     * Returns the set all neighbors of a word.
+     * Returns the set of all neighbors of a word in an array.
      *
-     * @param word the word to find the neighbors of
-     * @return the set of neighbors
+     * @param wordIndex the index of the word in the dictionary
+     * @return an array of the neighbors neighbors
      */
-    public abstract HashSet<Integer> findNeighbors(int wordIndex);
+    public abstract Integer[] findNeighbors(int wordIndex);
 
     /**
      * Returns true if and only if two words are neighboring.

@@ -37,8 +37,8 @@ class ConnectedNode {
     }
 
     public void addChildren(LevenshteinDatabase database, ArrayList<ConnectedNode> frontier, HashSet<Integer> searched, ArrayList<LinkedList<Integer>> pathList) {
-        HashSet<Integer> children = database.findNeighbors(wordIndex);
-        children.removeAll(searched);
+        Integer[] children = database.findNeighbors(wordIndex);
+        Arrays.asList(children).removeAll(searched);
 
         for (int child : children) {
             frontier.add(new ConnectedNode(child, new LinkedList(path), pathList));

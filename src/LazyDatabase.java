@@ -19,19 +19,20 @@ public class LazyDatabase extends LevenshteinDatabase {
     }
 
     @Override
-    public HashSet<Integer> findNeighbors(int wordIndex) {
-        HashSet<Integer> neighbors = new HashSet<>();
+    public Integer[] findNeighbors(int wordIndex) {
+        ArrayList<Integer> neighbors = new ArrayList<>();
 
         String w = this.wordAt(wordIndex);
         int endIndex = lengthStartIndexes.getOrDefault(w.length() + 2, dictionary.length);
-        // Reduces the searching scope to only words with a length that allows them to be neighboring w
+
+        // Reduces the searching scope to only words with a length that allows them to be adjacent
         for (int i = lengthStartIndexes.getOrDefault(w.length() - 1, 0); i < endIndex; i++) {
-            // Ensures that neighbors already in the graph will not be added
             if (areNeighboring(w, this.dictionary[i])) {
                 neighbors.add(i);
             }
         }
-        return neighbors;
+
+        return neighbors.toArray(new Integer[0]);
     }
 
     protected static boolean areNeighboring(String w1, String w2) {

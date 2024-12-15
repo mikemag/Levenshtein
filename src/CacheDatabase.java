@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 public class CacheDatabase extends WildcardDatabase {
-    private final HashMap<Integer, HashSet<Integer>> neighborMap;
+    private final HashMap<Integer, Integer[]> neighborMap;
 
     CacheDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
@@ -19,13 +19,19 @@ public class CacheDatabase extends WildcardDatabase {
     }
 
     @Override
-    public HashSet<Integer> findNeighbors(int wordIndex) { 
+    public Integer[] findNeighbors(int wordIndex) { 
         return neighborMap.get(wordIndex);
     }
 
     @Override
     public boolean areNeighbors(int wordIndex1, int wordIndex2) {
-        return findNeighbors(wordIndex1).contains(wordIndex2);
+        Integer[] word1Neighbors = findNeighbors(wordIndex1);
+        Integer[] word2Neighbors = findNeighbors(wordIndex2);
+
+        if (word1Neighbors.length <= word2Neighbors.length) {
+            return Arrays.asList(findNeighbors(wordIndex1)).contains(wordIndex2);
+        }
+        return Arrays.asList(findNeighbors(wordIndex2)).contains(wordIndex1);
     }
 
     private void fillWildcardMap(File inputFile) throws FileNotFoundException {
@@ -65,8 +71,8 @@ public class CacheDatabase extends WildcardDatabase {
         input.close();
     }
 
-    private HashMap<Integer, HashSet<Integer>> getInitializedNeighborMap() {
-        HashMap<Integer, HashSet<Integer>> returnMap = new HashMap();
+    private HashMap<Integer, Integer[]> getInitializedNeighborMap() {
+        HashMap<Integer, Integer[]> returnMap = new HashMap();
 
         for (int i = 0; i < this.dictionary.length; i++) {
             returnMap.put(i, super.findNeighbors(i));

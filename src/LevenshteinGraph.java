@@ -38,7 +38,7 @@ public class LevenshteinGraph {
         searched.putAll(outer);
 
         for (int outerWord : outer.keySet()) {
-            HashSet<Integer> neighbors = database.findNeighbors(outerWord);
+            Integer[] neighbors = database.findNeighbors(outerWord);
 
             for (int neighbor : neighbors) {
                 if (searched.containsKey(neighbor)) {

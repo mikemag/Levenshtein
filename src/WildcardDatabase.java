@@ -75,21 +75,22 @@ public class WildcardDatabase extends LevenshteinDatabase {
 
     @Override
     public boolean areNeighbors(int wordIndex1, int wordIndex2) {
-        HashSet<Integer> word1Neighbors = this.findNeighbors(wordIndex1);
-        return word1Neighbors.contains(wordIndex2);
+        return Arrays.asList(findNeighbors(wordIndex1)).contains(wordIndex2);
     }
     
     @Override
-    public HashSet<Integer> findNeighbors(int wordIndex) {
-        HashSet<Integer> returnSet = new HashSet();
+    public Integer[] findNeighbors(int wordIndex) {
+        ArrayList<Integer> returnList = new ArrayList();
 
         for (String wildcard : this.localWildcardIdentities(wordIndex)) {
             for (int neighborIndex : wildcardMap.get(wildcard)) {
-                returnSet.add(neighborIndex);
+                if (neighborIndex != wordIndex) {
+                    returnList.add(neighborIndex);
+                }
             }
         }
-        returnSet.remove(wordIndex);
-        return returnSet;
+
+        return returnList.toArray(new Integer[0]);
     };
 
     private HashMap<String, ArrayList<Integer>> getInitializedWildcardMap() {
