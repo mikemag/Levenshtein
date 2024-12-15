@@ -117,19 +117,39 @@ public class WildcardDatabase extends LevenshteinDatabase {
     public final String wildcardMapToString() {
         StringBuilder mapBuilder = new StringBuilder();
 
-        for (Map.Entry<String, ArrayList<Character>> entry : wildcardMap.entrySet()) {
+        for (Map.Entry<String, ArrayList<Integer>> entry : wildcardMap.entrySet()) {
+            String key = entry.getKey();
+            int keyWildcardIndex = WildcardDatabase.getWildcardIndex(key);
             StringBuilder entryBuilder = new StringBuilder();
+            entryBuilder.append(key);
 
-            entryBuilder.append(entry.getKey());
+            for (int value : new TreeSet<Integer>(entry.getValue())) {
+                String word = this.wordAt(value);
 
-            for (Character value : new TreeSet<Character>(entry.getValue())) {
-                entryBuilder.append(" " + value.toString());
+                if (word.length() < key.length()) {
+                    entryBuilder.append(" 0");
+                    continue;
+                }
+
+                entryBuilder.append(" " + this.wordAt(value).charAt(keyWildcardIndex));
             }
 
             mapBuilder.append(entryBuilder + "\n");
         }
 
         return mapBuilder.toString();
+    }
+
+    public static int getWildcardIndex(String wildcard) {
+        for (int i = 0; i < wildcard.length(); i++) {
+            if (wildcard.charAt(i) != '*') {
+                continue;
+            }
+
+            return i;
+        }
+
+        throw new IllegalArgumentException("Input must contain a wildcard character '*'");
     }
 }
 

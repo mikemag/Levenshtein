@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 public class CacheDatabase extends WildcardDatabase {
-    private final HashMap<String, HashSet<String>> neighborMap;
+    private final HashMap<Integer, HashSet<Integer>> neighborMap;
 
     CacheDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
@@ -19,13 +19,13 @@ public class CacheDatabase extends WildcardDatabase {
     }
 
     @Override
-    public HashSet<String> findNeighbors(String word) { 
-        return neighborMap.get(word);
+    public HashSet<Integer> findNeighbors(int wordIndex) { 
+        return neighborMap.get(wordIndex);
     }
 
     @Override
-    public boolean areNeighbors(String word1, String word2) {
-        return findNeighbors(word1).contains(word2);
+    public boolean areNeighbors(int wordIndex1, int wordIndex2) {
+        return findNeighbors(wordIndex1).contains(wordIndex2);
     }
 
     private void fillWildcardMap(File inputFile) throws FileNotFoundException {
@@ -34,10 +34,28 @@ public class CacheDatabase extends WildcardDatabase {
         while (input.hasNextLine()) {
             Scanner line = new Scanner(input.nextLine());
             String key = line.next();
-            ArrayList<Character> value = new ArrayList();
+            ArrayList<Integer> value = new ArrayList();
+            int wildcardIndex = WildcardDatabase.getWildcardIndex(key);
+
+            StringBuilder valueBuilder = new StringBuilder(key);
+            boolean firstValue = true;
 
             while (line.hasNext()) {
-                value.add(line.next().charAt(0));
+                char valueCharacter = line.next().charAt(0);
+
+                if (firstValue) {
+                    firstValue = false;
+
+                    if (valueCharacter == '0') {
+                        valueBuilder.deleteCharAt(wildcardIndex);
+                        value.add(this.getWordIndex(valueBuilder.toString()));
+                        valueBuilder.insert(wildcardIndex, "0");
+                        continue;
+                    }
+                }
+
+                valueBuilder.setCharAt(wildcardIndex, valueCharacter);
+                value.add(this.getWordIndex(valueBuilder.toString()));
             }
 
             this.wildcardMap.put(key, value);
@@ -47,11 +65,11 @@ public class CacheDatabase extends WildcardDatabase {
         input.close();
     }
 
-    private HashMap<String, HashSet<String>> getInitializedNeighborMap() {
-        HashMap<String, HashSet<String>> returnMap = new HashMap();
+    private HashMap<Integer, HashSet<Integer>> getInitializedNeighborMap() {
+        HashMap<Integer, HashSet<Integer>> returnMap = new HashMap();
 
-        for (String word : this.dictionary) {
-            returnMap.put(word, super.findNeighbors(word));
+        for (int i = 0; i < this.dictionary.length; i++) {
+            returnMap.put(i, super.findNeighbors(i));
         }
 
         return returnMap;
