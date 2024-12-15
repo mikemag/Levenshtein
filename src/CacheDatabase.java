@@ -2,12 +2,12 @@ import java.io.*;
 import java.util.*;
 
 public class CacheDatabase extends WildcardDatabase {
-    private final HashMap<Integer, Integer[]> neighborMap;
+    private final Integer[][] neighborArray;
 
     CacheDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
 
-        neighborMap = getInitializedNeighborMap();
+        neighborArray = getInitializedNeighborArray();
     }
 
     CacheDatabase(String dictionaryPath, String wildcardMapPath) throws FileNotFoundException {
@@ -15,12 +15,12 @@ public class CacheDatabase extends WildcardDatabase {
 
         fillWildcardMap(new File(wildcardMapPath));
 
-        neighborMap = getInitializedNeighborMap();
+        neighborArray = getInitializedNeighborArray();
     }
 
     @Override
     public Integer[] findNeighbors(int wordIndex) { 
-        return neighborMap.get(wordIndex);
+        return neighborArray[wordIndex];
     }
 
     @Override
@@ -71,14 +71,14 @@ public class CacheDatabase extends WildcardDatabase {
         input.close();
     }
 
-    private HashMap<Integer, Integer[]> getInitializedNeighborMap() {
-        HashMap<Integer, Integer[]> returnMap = new HashMap();
+    private Integer[][] getInitializedNeighborArray() {
+        Integer[][] initialArray = new Integer[this.dictionary.length][];
 
         for (int i = 0; i < this.dictionary.length; i++) {
-            returnMap.put(i, super.findNeighbors(i));
+            initialArray[i] = super.findNeighbors(i);
         }
 
-        return returnMap;
+        return initialArray;
     }
 
     public void wildcardMapToFile(File outFile) throws FileNotFoundException {
