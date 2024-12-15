@@ -1,14 +1,14 @@
 import java.util.*;
 
 public class LevenshteinGraph {
-    private HashMap<Integer, HashSet<Integer>> outer;
+    private HashMap<Integer, ArrayList<Integer>> outer;
 
     /**
      * Searched is used both for reconstructing paths after finishing the
      * breadth-first search and ensuring each word is contained in only one
      * layer.
      */
-    private HashMap<Integer, HashSet<Integer>> searched;
+    private HashMap<Integer, ArrayList<Integer>> searched;
 
     /**
      * Initializes the graph, with searched being completely empty and outer only containing the root word with no previous.
@@ -17,7 +17,7 @@ public class LevenshteinGraph {
     public LevenshteinGraph(int root) {
         searched = new HashMap<>();
         outer = new HashMap<>();
-        outer.put(root, new HashSet<>());
+        outer.put(root, new ArrayList());
     }
     
     /**
@@ -33,7 +33,7 @@ public class LevenshteinGraph {
      * @param lengthStartIndexes A map, with the values being the first index of a word in dictionary of a length equal to its key.
      */
     public void generateNewOuter(LevenshteinDatabase database) {
-        HashMap<Integer, HashSet<Integer>> newOuter = new HashMap<>();
+        HashMap<Integer, ArrayList<Integer>> newOuter = new HashMap<>();
 
         searched.putAll(outer);
 
@@ -45,11 +45,11 @@ public class LevenshteinGraph {
                     continue;
                 }
 
-                HashSet<Integer> neighborsNeighbors = newOuter.get(neighbor);
+                ArrayList<Integer> neighborsNeighbors = newOuter.get(neighbor);
                 if (neighborsNeighbors != null) {
                     newOuter.get(neighbor).add(outerWord);
                 } else {
-                    newOuter.put(neighbor, new HashSet<>(Arrays.asList(outerWord)));
+                    newOuter.put(neighbor, new ArrayList<Integer>(Arrays.asList(outerWord)));
                 }
             }
         }
@@ -134,12 +134,12 @@ public class LevenshteinGraph {
      * @return If outer of this graph contains any words in the outer of the other graph.
      */
     public boolean outerIntersects(LevenshteinGraph g) {
-        HashMap<Integer, HashSet<Integer>> outerCopy = outer;
-        HashMap<Integer, HashSet<Integer>> otherOuter = g.outer;
+        HashMap<Integer, ArrayList<Integer>> outerCopy = outer;
+        HashMap<Integer, ArrayList<Integer>> otherOuter = g.outer;
         // This ensures that outerCopy is the shorter of the two outer maps
         // Iterating across the shorter map will decrease the number of checks it makes. Since containsKey() is O(1), this saves time.
         if (outerCopy.keySet().size() > otherOuter.keySet().size()) {
-            HashMap<Integer, HashSet<Integer>> temp = otherOuter;
+            HashMap<Integer, ArrayList<Integer>> temp = otherOuter;
             otherOuter = outerCopy;
             outerCopy = temp;
         }
@@ -153,18 +153,21 @@ public class LevenshteinGraph {
 
     public HashSet<Integer> getOuterIntersection(LevenshteinGraph g) {
         HashSet<Integer> intersection = new HashSet<>();
-        HashMap<Integer, HashSet<Integer>> outerCopy = outer;
-        HashMap<Integer, HashSet<Integer>> otherOuter = g.outer;
+        HashMap<Integer, ArrayList<Integer>> outerCopy = outer;
+        HashMap<Integer, ArrayList<Integer>> otherOuter = g.outer;
+
         if (outerCopy.keySet().size() > otherOuter.keySet().size()) {
-            HashMap<Integer, HashSet<Integer>> temp = otherOuter;
+            HashMap<Integer, ArrayList<Integer>> temp = otherOuter;
             otherOuter = outerCopy;
             outerCopy = temp;
         }
+
         for (int wordIndex : outerCopy.keySet()) {
             if (otherOuter.containsKey(wordIndex)) {
                 intersection.add(wordIndex);
             }
         }
+
         return intersection;
     }
 
