@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 public class WildcardDatabase extends LevenshteinDatabase {
-    protected final HashMap<String, ArrayList<Character>> wildcardMap;
+    protected final HashMap<String, ArrayList<Integer>> wildcardMap;
 
     public WildcardDatabase(String dictionaryPath) throws FileNotFoundException {
         super(dictionaryPath);
@@ -20,10 +20,10 @@ public class WildcardDatabase extends LevenshteinDatabase {
         }
     }
 
-    public final ArrayList<String> localWildcardIdentities(String word) {
+    public final ArrayList<String> localWildcardIdentities(int wordIndex) {
         ArrayList<String> identities = new ArrayList();
 
-        addEachWildcard(word, identities, (wildcardSubstitute, wildcardIdentity, 
+        addEachWildcard(wordIndex, identities, (wildcardSubstitute, wildcardIdentity, 
                 wildcardListObject) -> {
             if (wildcardMap.containsKey(wildcardIdentity)) {
                 ((ArrayList<String>)wildcardListObject).add(wildcardIdentity);
@@ -32,76 +32,79 @@ public class WildcardDatabase extends LevenshteinDatabase {
         return identities;
     }
 
-    public static final ArrayList<String> allWildcardIdentities(String word) {
+    public final ArrayList<String> allWildcardIdentities(int wordIndex) {
         ArrayList<String> identities = new ArrayList();
 
-        addEachWildcard(word, identities, (wildcardSubstitute, wildcardIdentity, 
+        addEachWildcard(wordIndex, identities, (wildcardSubstitute, wildcardIdentity, 
                 wildcardMapObject) -> {
             ((ArrayList<String>)wildcardMapObject).add(wildcardIdentity);
         });
         return identities;
     };
 
-    private static void putEachWildcard(String word, HashMap<String, ArrayList<Character>> destination) {
-        addEachWildcard(word, destination, (wildcardSubstitute, wildcardIdentity, 
+    private void putEachWildcard(int wordIndex, HashMap<String, ArrayList<Integer>> destination) {
+        addEachWildcard(wordIndex, destination, (wildcardSubstitute, wildcardIdentity, 
                 wildcardMapObject) -> {
-            HashMap<String, ArrayList<Character>> map = (HashMap<String, ArrayList<Character>>)wildcardMapObject;
+            HashMap<String, ArrayList<Integer>> map = (HashMap<String, ArrayList<Integer>>)wildcardMapObject;
 
             map.putIfAbsent(wildcardIdentity, new ArrayList<>());
             map.get(wildcardIdentity).add(wildcardSubstitute);
         });
     }
 
-    private static void addEachWildcard(String word, Object dataStructure, wildcardDataStructureAdder wildcardDataStructureAdder) {
+    private void addEachWildcard(int wordIndex, Object dataStructure, wildcardDataStructureAdder wildcardDataStructureAdder) {
+        String word = this.wordAt(wordIndex);
         StringBuilder cardBuilder = new StringBuilder(word);
         int wordLength = word.length();
 
         cardBuilder.setCharAt(0, '*');
-        wildcardDataStructureAdder.addIdentityToStructure(word.charAt(0), cardBuilder.toString(), dataStructure);
+        wildcardDataStructureAdder.addIdentityToStructure(wordIndex, cardBuilder.toString(), dataStructure);
         for (int i = 1; i < wordLength; i++) {
             cardBuilder.setCharAt(i - 1, word.charAt(i - 1));
             cardBuilder.setCharAt(i, '*');
-            wildcardDataStructureAdder.addIdentityToStructure(word.charAt(i), cardBuilder.toString(), dataStructure);
+            wildcardDataStructureAdder.addIdentityToStructure(wordIndex, cardBuilder.toString(), dataStructure);
         }
 
         cardBuilder.append('*');
         cardBuilder.setCharAt(wordLength - 1, word.charAt(wordLength - 1));
-        wildcardDataStructureAdder.addIdentityToStructure('0', cardBuilder.toString(), dataStructure);
+        wildcardDataStructureAdder.addIdentityToStructure(wordIndex, cardBuilder.toString(), dataStructure);
         for (int i = wordLength; i > 0; i--) {
             cardBuilder.setCharAt(i, word.charAt(i - 1));
             cardBuilder.setCharAt(i - 1, '*');
-            wildcardDataStructureAdder.addIdentityToStructure('0', cardBuilder.toString(), dataStructure);
+            wildcardDataStructureAdder.addIdentityToStructure(wordIndex, cardBuilder.toString(), dataStructure);
         }
     }
 
-    public boolean areNeighbors(String word1, String word2) {
-        HashSet<String> word1Neighbors = this.findNeighbors(word1);
-        return word1Neighbors.contains(word2);
+    @Override
+    public boolean areNeighbors(int wordIndex1, int wordIndex2) {
+        HashSet<Integer> word1Neighbors = this.findNeighbors(wordIndex1);
+        return word1Neighbors.contains(wordIndex2);
     }
     
-    public HashSet<String> findNeighbors(String word) {
-        HashSet<String> returnSet = new HashSet();
+    @Override
+    public HashSet<Integer> findNeighbors(int wordIndex) {
+        HashSet<Integer> returnSet = new HashSet();
 
-        for (String wildcard : this.localWildcardIdentities(word)) {
-            for (Character character : wildcardMap.get(wildcard)) {
-                returnSet.add(WildcardDatabase.wildcardMapValueToString(wildcard, character));
+        for (String wildcard : this.localWildcardIdentities(wordIndex)) {
+            for (int neighborIndex : wildcardMap.get(wildcard)) {
+                returnSet.add(neighborIndex);
             }
         }
-        returnSet.remove(word);
+        returnSet.remove(wordIndex);
         return returnSet;
     };
 
-    private HashMap<String, ArrayList<Character>> getInitializedWildcardMap() {
-        HashMap<String, ArrayList<Character>> returnMap = new HashMap();
+    private HashMap<String, ArrayList<Integer>> getInitializedWildcardMap() {
+        HashMap<String, ArrayList<Integer>> returnMap = new HashMap();
 
         for (int i = 0; i < this.dictionary.length; i++) {
-            WildcardDatabase.putEachWildcard(this.dictionary[i], returnMap);
+            putEachWildcard(i, returnMap);
         }
         
-        Iterator<Map.Entry<String, ArrayList<Character>>> wildcardIterator = returnMap.entrySet().iterator();
+        Iterator<Map.Entry<String, ArrayList<Integer>>> wildcardIterator = returnMap.entrySet().iterator();
 
         while (wildcardIterator.hasNext()) {
-            Map.Entry<String, ArrayList<Character>> entry = wildcardIterator.next();
+            Map.Entry<String, ArrayList<Integer>> entry = wildcardIterator.next();
 
             if (entry.getValue().size() == 1) {
                 wildcardIterator.remove();
@@ -109,21 +112,6 @@ public class WildcardDatabase extends LevenshteinDatabase {
         }
 
         return returnMap;
-    }
-
-    protected static final String wildcardMapValueToString(String key, Character value) {
-        for (int i = 0; i < key.length(); i++) {
-            if (key.charAt(i) == '*') {
-                StringBuilder returnBuilder = new StringBuilder(key);
-                if (value != '0') {
-                    returnBuilder.replace(i, i + 1, value.toString());
-                } else {
-                    returnBuilder.deleteCharAt(i);
-                };
-                return returnBuilder.toString();
-            }
-        }
-        throw new IllegalArgumentException("Key contains no asterisk (*) character");
     }
 
     public final String wildcardMapToString() {
@@ -143,18 +131,9 @@ public class WildcardDatabase extends LevenshteinDatabase {
 
         return mapBuilder.toString();
     }
-
-    public static final Comparator<String> COMPARE_BY_LENGTH = (o1, o2) -> {
-        int delta = o1.length() - o2.length();
-        if (delta == 0) {
-            return o1.compareTo(o2);
-        } else {
-            return delta;
-        }
-    };
 }
 
 @FunctionalInterface
 interface wildcardDataStructureAdder {
-    void addIdentityToStructure(Character wildcardSubstitute, String wildcardIdentity, Object dataStructure);
+    void addIdentityToStructure(int wordIndex, String wildcardIdentity, Object dataStructure);
 }

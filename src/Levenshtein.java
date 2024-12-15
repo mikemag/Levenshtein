@@ -12,8 +12,8 @@ public class Levenshtein {
             database = new LazyDatabase(dictionaryPath);
         } else if (args[1].equals("wildcard")) {
             database = new WildcardDatabase(dictionaryPath);
-        } else if (args[1].equals("cache")) {
-            database = new CacheDatabase(dictionaryPath, args[5]);
+        //} else if (args[1].equals("cache")) {
+            //database = new CacheDatabase(dictionaryPath, args[5]);
         } else {
             throw new IllegalArgumentException("Illegal database type!");
         }
@@ -29,17 +29,17 @@ public class Levenshtein {
         long time2 = System.nanoTime();
         System.out.println("Init Time: " + (time2 - time1) / 1000000 + " milliseconds");
 
-        String word1 = args[3];
-        String word2 = args[4];
+        int wordIndex1 = database.getWordIndex(args[3]);
+        int wordIndex2 = database.getWordIndex(args[4]);
 
         long time3 = System.nanoTime();
-        System.out.println(LevenshteinPathFinder.pathsToString(finder.generatePaths(word1, word2, database, time1), true, true));
+        System.out.println(LevenshteinPathFinder.pathsToString(finder.generatePaths(wordIndex1, wordIndex2, database, time1), true, true));
 
         System.out.println("Done in " + (System.nanoTime() - time3)/1000 + " microseconds.");
         long time4 = System.nanoTime();
 
         for (int i = 0; i < 1000; i++) {
-            LevenshteinPathFinder.pathsToString(finder.generatePaths(word1, word2, database, time2), false, false);
+            LevenshteinPathFinder.pathsToString(finder.generatePaths(wordIndex1, wordIndex2, database, time2), false, false);
         }
         System.out.println("Average Time: " + (System.nanoTime() - time4)/1000000 + " microseconds");
     }

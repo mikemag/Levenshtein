@@ -9,13 +9,13 @@ public class FinderSingleSided extends LevenshteinPathFinder {
      * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between word1 and word2.
      */
     @Override
-    public TreeSet<LinkedList<String>> generatePaths(String word1, String word2, LevenshteinDatabase database, long startTime) {
-        if (word1.equals(word2)) {
-            TreeSet<LinkedList<String>> path = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
-            path.add(new LinkedList<>(Arrays.asList(word1)));
+    public TreeSet<LinkedList<Integer>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
+        if (wordIndex1 == wordIndex2) {
+            TreeSet<LinkedList<Integer>> path = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
+            path.add(new LinkedList<>(Arrays.asList(wordIndex1)));
             return path;
         }
-        LevenshteinGraph g = new LevenshteinGraph(word1);
+        LevenshteinGraph g = new LevenshteinGraph(wordIndex1);
         while (true) {
             g.generateNewOuter(database);
             if (PRINT_EXTRA) {
@@ -26,8 +26,8 @@ public class FinderSingleSided extends LevenshteinPathFinder {
             }
             if (g.outerSize() == 0) {
                 return null;
-            } else if (g.outerContains(word2)) {
-                return g.allPathsBetween(word1, word2, false);
+            } else if (g.outerContains(wordIndex2)) {
+                return g.allPathsBetween(wordIndex1, wordIndex2, false);
             }
         }
     }

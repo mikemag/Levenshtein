@@ -1,20 +1,20 @@
 import java.util.*;
 
 public class LevenshteinGraph {
-    private HashMap<String, HashSet<String>> outer;
+    private HashMap<Integer, HashSet<Integer>> outer;
 
     /**
      * Searched is used both for reconstructing paths after finishing the
      * breadth-first search and ensuring each word is contained in only one
      * layer.
      */
-    private HashMap<String, HashSet<String>> searched;
+    private HashMap<Integer, HashSet<Integer>> searched;
 
     /**
      * Initializes the graph, with searched being completely empty and outer only containing the root word with no previous.
      * @param root Word to put in the outer layer of the graph.
      */
-    public LevenshteinGraph(String root) {
+    public LevenshteinGraph(int root) {
         searched = new HashMap<>();
         outer = new HashMap<>();
         outer.put(root, new HashSet<>());
@@ -33,19 +33,19 @@ public class LevenshteinGraph {
      * @param lengthStartIndexes A map, with the values being the first index of a word in dictionary of a length equal to its key.
      */
     public void generateNewOuter(LevenshteinDatabase database) {
-        HashMap<String, HashSet<String>> newOuter = new HashMap<>();
+        HashMap<Integer, HashSet<Integer>> newOuter = new HashMap<>();
 
         searched.putAll(outer);
 
-        for (String outerWord : outer.keySet()) {
-            HashSet<String> neighbors = database.findNeighbors(outerWord);
+        for (int outerWord : outer.keySet()) {
+            HashSet<Integer> neighbors = database.findNeighbors(outerWord);
 
-            for (String neighbor : neighbors) {
+            for (int neighbor : neighbors) {
                 if (searched.containsKey(neighbor)) {
                     continue;
                 }
 
-                HashSet<String> neighborsNeighbors = newOuter.get(neighbor);
+                HashSet<Integer> neighborsNeighbors = newOuter.get(neighbor);
                 if (neighborsNeighbors != null) {
                     newOuter.get(neighbor).add(outerWord);
                 } else {
@@ -58,38 +58,38 @@ public class LevenshteinGraph {
     }
 
     /**
-     * Recursively finds all paths between w1 and w2.
+     * Recursively finds all paths between wordIndex1 and wordIndex2.
      * TODO: Finish this
      * @param w1 First word.
      * @param w2 Second word.
-     * @param reversed If false, w1 -> w2 is returned. If true, w2 -> w1 is returned.
-     * @return All paths between w1 and w2, with each path being expressed a LinkedList of the words in the path, and the paths being stored in a TreeSet.
+     * @param reversed If false, wordIndex1 -> wordIndex2 is returned. If true, wordIndex2 -> wordIndex1 is returned.
+     * @return All paths between wordIndex1 and wordIndex2, with each path being expressed a LinkedList of the words in the path, and the paths being stored in a TreeSet.
      */
-    public TreeSet<LinkedList<String>> allPathsBetween(String w1, String w2, boolean reversed) {
-        LinkedList<String> previous = new LinkedList<>(Arrays.asList(w2));
-        if (w1.equals(w2)) {
-            TreeSet<LinkedList<String>> toReturn = new TreeSet<>(PATH_COMPARATOR);
+    public TreeSet<LinkedList<Integer>> allPathsBetween(int wordIndex1, int wordIndex2, boolean reversed) {
+        LinkedList<Integer> previous = new LinkedList<>(Arrays.asList(wordIndex2));
+        if (wordIndex1 == wordIndex2) {
+            TreeSet<LinkedList<Integer>> toReturn = new TreeSet<>(PATH_COMPARATOR);
             toReturn.add(previous);
             return toReturn;
         } else {
-            return allPathsBetween(new TreeSet<>(PATH_COMPARATOR), previous, w1, reversed);
+            return allPathsBetween(new TreeSet<>(PATH_COMPARATOR), previous, wordIndex1, reversed);
         }
     }
-    public TreeSet<LinkedList<String>> allPathsBetween(TreeSet<LinkedList<String>> paths, LinkedList<String> currentPath, String root, boolean reversed) {
-        String currentWord;
+    public TreeSet<LinkedList<Integer>> allPathsBetween(TreeSet<LinkedList<Integer>> paths, LinkedList<Integer> currentPath, int root, boolean reversed) {
+        int currentWordIndex;
         if (!reversed) {
-            currentWord = currentPath.getFirst();
+            currentWordIndex = currentPath.getFirst();
         } else {
-            currentWord = currentPath.getLast();
+            currentWordIndex = currentPath.getLast();
         }
 
-        // On the first iteration (Where current word is w1 from the non-recursive call), currentWord will be in outer.
+        // On the first iteration (Where current word is wordIndex1 from the non-recursive call), currentWord will be in outer.
         // After
-        HashSet<String> setToSearch;
-        if (outer.containsKey(currentWord)) {
-            setToSearch = new HashSet<>(outer.get(currentWord));
+        HashSet<Integer> setToSearch;
+        if (outer.containsKey(currentWordIndex)) {
+            setToSearch = new HashSet<>(outer.get(currentWordIndex));
         } else {
-            setToSearch = new HashSet<>(searched.get(currentWord));
+            setToSearch = new HashSet<>(searched.get(currentWordIndex));
         }
 
         if (setToSearch.contains(root)) {
@@ -101,15 +101,15 @@ public class LevenshteinGraph {
             paths.add(currentPath);
         } else {
             if (!reversed) {
-                for (String w : setToSearch) {
-                    LinkedList<String> newPrevious = new LinkedList<>(currentPath);
-                    newPrevious.addFirst(w);
+                for (Integer wordIndex : setToSearch) {
+                    LinkedList<Integer> newPrevious = new LinkedList<>(currentPath);
+                    newPrevious.addFirst(wordIndex);
                     paths = allPathsBetween(paths, newPrevious, root, reversed);
                 }
             } else {
-                for (String w : setToSearch) {
-                    LinkedList<String> newPrevious = new LinkedList<>(currentPath);
-                    newPrevious.addLast(w);
+                for (Integer wordIndex : setToSearch) {
+                    LinkedList<Integer> newPrevious = new LinkedList<>(currentPath);
+                    newPrevious.addLast(wordIndex);
                     paths = allPathsBetween(paths, newPrevious, root, reversed);
                 }
             }
@@ -118,13 +118,13 @@ public class LevenshteinGraph {
     }
 
     /**
-     * Checks if the outer of this graph contains w.
+     * Checks if the outer of this graph contains wordIndex.
      * This method is for single-sided levenshtein algorithms, where each layer is checked against a single target word.
-     * @param w Word to check.
-     * @return True if the outer of this graph contains w, false otherwise.
+     * @param wordIndex Word to check.
+     * @return True if the outer of this graph contains wordIndex, false otherwise.
      */
-    public boolean outerContains(String w) {
-        return outer.containsKey(w);
+    public boolean outerContains(int wordIndex) {
+        return outer.containsKey(wordIndex);
     }
 
     /**
@@ -134,16 +134,16 @@ public class LevenshteinGraph {
      * @return If outer of this graph contains any words in the outer of the other graph.
      */
     public boolean outerIntersects(LevenshteinGraph g) {
-        HashMap<String, HashSet<String>> outerCopy = outer;
-        HashMap<String, HashSet<String>> otherOuter = g.outer;
+        HashMap<Integer, HashSet<Integer>> outerCopy = outer;
+        HashMap<Integer, HashSet<Integer>> otherOuter = g.outer;
         // This ensures that outerCopy is the shorter of the two outer maps
         // Iterating across the shorter map will decrease the number of checks it makes. Since containsKey() is O(1), this saves time.
         if (outerCopy.keySet().size() > otherOuter.keySet().size()) {
-            HashMap<String, HashSet<String>> temp = otherOuter;
+            HashMap<Integer, HashSet<Integer>> temp = otherOuter;
             otherOuter = outerCopy;
             outerCopy = temp;
         }
-        for (String w : outerCopy.keySet()) {
+        for (int w : outerCopy.keySet()) {
             if (otherOuter.containsKey(w)) {
                 return true;
             }
@@ -151,18 +151,18 @@ public class LevenshteinGraph {
         return false;
     }
 
-    public HashSet<String> getOuterIntersection(LevenshteinGraph g) {
-        HashSet<String> intersection = new HashSet<>();
-        HashMap<String, HashSet<String>> outerCopy = outer;
-        HashMap<String, HashSet<String>> otherOuter = g.outer;
+    public HashSet<Integer> getOuterIntersection(LevenshteinGraph g) {
+        HashSet<Integer> intersection = new HashSet<>();
+        HashMap<Integer, HashSet<Integer>> outerCopy = outer;
+        HashMap<Integer, HashSet<Integer>> otherOuter = g.outer;
         if (outerCopy.keySet().size() > otherOuter.keySet().size()) {
-            HashMap<String, HashSet<String>> temp = otherOuter;
+            HashMap<Integer, HashSet<Integer>> temp = otherOuter;
             otherOuter = outerCopy;
             outerCopy = temp;
         }
-        for (String w : outerCopy.keySet()) {
-            if (otherOuter.containsKey(w)) {
-                intersection.add(w);
+        for (int wordIndex : outerCopy.keySet()) {
+            if (otherOuter.containsKey(wordIndex)) {
+                intersection.add(wordIndex);
             }
         }
         return intersection;
@@ -183,9 +183,9 @@ public class LevenshteinGraph {
      * If the first words are identical, the next word is checked, then the next one, and so on.
      * @return Returns 0 if the paths are identical, < 0 if the first word in o1 comes before o2, and >1 if it comes after.
      */
-    public static final Comparator<LinkedList<String>> PATH_COMPARATOR = (o1, o2) -> {
-        Iterator<String> i1 = o1.iterator();
-        Iterator<String> i2 = o2.iterator();
+    public static final Comparator<LinkedList<Integer>> PATH_COMPARATOR = (o1, o2) -> {
+        Iterator<Integer> i1 = o1.iterator();
+        Iterator<Integer> i2 = o2.iterator();
         while (i1.hasNext()) {
             if (!i2.hasNext()) {
                 return 1;

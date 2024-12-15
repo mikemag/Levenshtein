@@ -13,25 +13,28 @@ public class LazyDatabase extends LevenshteinDatabase {
         }
     }
 
-    public boolean areNeighbors(String word1, String word2) {
-        return areNeighboring(word1, word2);
+    @Override
+    public boolean areNeighbors(int wordIndex1, int wordIndex2) {
+        return areNeighboring(this.wordAt(wordIndex1), this.wordAt(wordIndex2));
     }
 
-    public HashSet<String> findNeighbors(String w) {
-        HashSet<String> neighbors = new HashSet<>();
+    @Override
+    public HashSet<Integer> findNeighbors(int wordIndex) {
+        HashSet<Integer> neighbors = new HashSet<>();
 
+        String w = this.wordAt(wordIndex);
         int endIndex = lengthStartIndexes.getOrDefault(w.length() + 2, dictionary.length);
         // Reduces the searching scope to only words with a length that allows them to be neighboring w
         for (int i = lengthStartIndexes.getOrDefault(w.length() - 1, 0); i < endIndex; i++) {
             // Ensures that neighbors already in the graph will not be added
             if (areNeighboring(w, this.dictionary[i])) {
-                neighbors.add(this.dictionary[i]);
+                neighbors.add(i);
             }
         }
         return neighbors;
     }
 
-    public static boolean areNeighboring(String w1, String w2) {
+    protected static boolean areNeighboring(String w1, String w2) {
         int w1l = w1.length();
         int w2l = w2.length();
         int lengthDifference = w1l - w2l;

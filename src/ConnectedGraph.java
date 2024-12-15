@@ -1,14 +1,14 @@
 import java.util.*;
 
 public class ConnectedGraph {
-    public static ArrayList<LinkedList<String>> allPathsIn (String word, LevenshteinDatabase database) {
-        ArrayList<LinkedList<String>> pathList = new ArrayList();
-        HashSet<String> foundWords = new HashSet<String>();
-        foundWords.add(word);
+    public static ArrayList<LinkedList<Integer>> allPathsIn (int wordIndex, LevenshteinDatabase database) {
+        ArrayList<LinkedList<Integer>> pathList = new ArrayList();
+        HashSet<Integer> foundWords = new HashSet<Integer>();
+        foundWords.add(wordIndex);
 
         ArrayList<ArrayList<ConnectedNode>> graph = new ArrayList();
         graph.add(new ArrayList());
-        graph.get(0).add(new ConnectedNode(word, new LinkedList(), pathList));
+        graph.get(0).add(new ConnectedNode(wordIndex, new LinkedList(), pathList));
 
         for (int i = 0; graph.get(i).size() != 0; i++) {
             graph.add(i + 1, new ArrayList());
@@ -18,7 +18,7 @@ public class ConnectedGraph {
             }
 
             for (ConnectedNode node : graph.get(i + 1)) {
-                foundWords.add(node.word);
+                foundWords.add(node.wordIndex);
             }
         }
 
@@ -27,20 +27,20 @@ public class ConnectedGraph {
 }
 
 class ConnectedNode {
-    public final String word;
-    private final LinkedList<String> path;
-    public ConnectedNode(String word, LinkedList<String> path, ArrayList<LinkedList<String>> pathList) {
-        path.addLast(word);
+    public final int wordIndex;
+    private final LinkedList<Integer> path;
+    public ConnectedNode(int wordIndex, LinkedList<Integer> path, ArrayList<LinkedList<Integer>> pathList) {
+        path.addLast(wordIndex);
         pathList.add(path);
-        this.word = word;
+        this.wordIndex = wordIndex;
         this.path = path;
     }
 
-    public void addChildren(LevenshteinDatabase database, ArrayList<ConnectedNode> frontier, HashSet<String> searched, ArrayList<LinkedList<String>> pathList) {
-        HashSet<String> children = database.findNeighbors(word);
+    public void addChildren(LevenshteinDatabase database, ArrayList<ConnectedNode> frontier, HashSet<Integer> searched, ArrayList<LinkedList<Integer>> pathList) {
+        HashSet<Integer> children = database.findNeighbors(wordIndex);
         children.removeAll(searched);
 
-        for (String child : children) {
+        for (int child : children) {
             frontier.add(new ConnectedNode(child, new LinkedList(path), pathList));
         }
     }

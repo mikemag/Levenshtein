@@ -37,7 +37,7 @@ public abstract class LevenshteinDatabase {
      * @param word the word to find the neighbors of
      * @return the set of neighbors
      */
-    public abstract HashSet<String> findNeighbors(String word);
+    public abstract HashSet<Integer> findNeighbors(int wordIndex);
 
     /**
      * Returns true if and only if two words are neighboring.
@@ -48,7 +48,7 @@ public abstract class LevenshteinDatabase {
      * @param word2 the the second word
      * @return if the neighbors are neighboring
      */
-    public abstract boolean areNeighbors(String word1, String word2);
+    public abstract boolean areNeighbors(int wordIndex1, int word2);
 
     /**
      * Finds the word at an index in the dictionary.

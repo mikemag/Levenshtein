@@ -11,7 +11,7 @@ public abstract class LevenshteinPathFinder {
      * @param startTime Approximate time (gotten from System.nanoTime()) that this function was called.
      * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between w1 and w2
      */
-    public abstract TreeSet<LinkedList<String>> generatePaths(String word1, String word2, LevenshteinDatabase database, long startTime);
+    public abstract TreeSet<LinkedList<Integer>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime);
 
     /**
      * Converts paths to a String representation, where each path is on its own line and a change is denoted by [word1]-> [word2]
@@ -21,17 +21,17 @@ public abstract class LevenshteinPathFinder {
      * @param showDistance Whether to add the distance to the end of the String.
      * @return The LinkedList of paths, represented as Strings.
      */
-    public static String pathsToString(TreeSet<LinkedList<String>> paths, boolean showNumber, boolean showDistance) {
+    public static String pathsToString(TreeSet<LinkedList<Integer>> paths, boolean showNumber, boolean showDistance) {
         int pathNumber = 0;
         StringBuilder pathsBuilder = new StringBuilder();
         if (paths == null) {
             return "";
         }
-        for (LinkedList<String> l : paths) {
+        for (LinkedList<Integer> l : paths) {
             if (showNumber) {
                 pathsBuilder.append(++pathNumber + ". ");
             }
-            Iterator<String> listIter = l.iterator();
+            Iterator<Integer> listIter = l.iterator();
             pathsBuilder.append(listIter.next());
             while (listIter.hasNext()) {
                 pathsBuilder.append("-> " + listIter.next());
@@ -39,7 +39,7 @@ public abstract class LevenshteinPathFinder {
             pathsBuilder.append("\n");
         }
         if (showDistance) {
-            Iterator<LinkedList<String>> pathIter = paths.iterator();
+            Iterator<LinkedList<Integer>> pathIter = paths.iterator();
             int distance = pathIter.next().size() - 1;
             pathsBuilder.append("Distance: " + distance);
         }

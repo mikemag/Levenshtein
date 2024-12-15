@@ -9,14 +9,14 @@ public class FinderDualSided extends LevenshteinPathFinder {
      * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between word1 and word2
      */
     @Override
-    public TreeSet<LinkedList<String>> generatePaths(String word1, String word2, LevenshteinDatabase database, long startTime) {
-        if (word1.equals(word2)) {
-            TreeSet<LinkedList<String>> path = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
-            path.add(new LinkedList<>(Arrays.asList(word1)));
+    public TreeSet<LinkedList<Integer>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
+        if (wordIndex1 == wordIndex2) {
+            TreeSet<LinkedList<Integer>> path = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
+            path.add(new LinkedList<>(Arrays.asList(wordIndex1)));
             return path;
         }
-        LevenshteinGraph graph1 = new LevenshteinGraph(word1);
-        LevenshteinGraph graph2 = new LevenshteinGraph(word2);
+        LevenshteinGraph graph1 = new LevenshteinGraph(wordIndex1);
+        LevenshteinGraph graph2 = new LevenshteinGraph(wordIndex2);
         while(true) {
             int graph1OSize = graph1.outerSize();
             int graph2OSize = graph2.outerSize();
@@ -36,7 +36,7 @@ public class FinderDualSided extends LevenshteinPathFinder {
             if (graph1OSize == 0 || graph2OSize == 0) {
                 return null;
             } else if (graph1.outerIntersects(graph2)) {
-                return graphsToPaths(graph1, graph2, word1, word2, graph1.getOuterIntersection(graph2));
+                return graphsToPaths(graph1, graph2, wordIndex1, wordIndex2, graph1.getOuterIntersection(graph2));
             }
         }
     }
@@ -51,20 +51,20 @@ public class FinderDualSided extends LevenshteinPathFinder {
      * @param intersection Set of words which are shared between the outer layers of graph1 and graph2.
      * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between word1 and word2.
      */
-    private static TreeSet<LinkedList<String>> graphsToPaths(LevenshteinGraph graph1, LevenshteinGraph graph2, String word1, String word2, HashSet<String> intersection) {
-        TreeSet<LinkedList<String>> pathsToReturn = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
-        TreeSet<LinkedList<String>> graph1Paths = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
-        TreeSet<LinkedList<String>> graph2Paths = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
-        for (String word : intersection) {
-            graph1Paths.addAll(graph1.allPathsBetween(word1, word, false));
-            graph2Paths.addAll(graph2.allPathsBetween(word2, word, true));
+    private static TreeSet<LinkedList<Integer>> graphsToPaths(LevenshteinGraph graph1, LevenshteinGraph graph2, int wordIndex1, int wordIndex2, HashSet<Integer> intersection) {
+        TreeSet<LinkedList<Integer>> pathsToReturn = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
+        TreeSet<LinkedList<Integer>> graph1Paths = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
+        TreeSet<LinkedList<Integer>> graph2Paths = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
+        for (int word : intersection) {
+            graph1Paths.addAll(graph1.allPathsBetween(wordIndex1, word, false));
+            graph2Paths.addAll(graph2.allPathsBetween(wordIndex2, word, true));
         }
         // For each word in intersection, there may be multiple paths to it from the starting word and there may be multiple to the ending word.
         // To account for this, each rootPath is indexed and then a unique path for each destinationPath is added to pathsToReturn.
         // To make sure only legal paths are added, the rootPath and destinationPath are first checked for a shared intersection word.
-        for (LinkedList<String> rootPath : graph1Paths) {
-            for (LinkedList<String> destinationPath : graph2Paths) {
-                LinkedList<String> pathToAdd = (LinkedList<String>)rootPath.clone();
+        for (LinkedList<Integer> rootPath : graph1Paths) {
+            for (LinkedList<Integer> destinationPath : graph2Paths) {
+                LinkedList<Integer> pathToAdd = (LinkedList<Integer>)rootPath.clone();
                 if (pathToAdd.removeLast().equals(destinationPath.getFirst())) {
                     pathToAdd.addAll(destinationPath);
                     pathsToReturn.add(pathToAdd);
