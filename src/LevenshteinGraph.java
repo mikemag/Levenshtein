@@ -72,9 +72,9 @@ public class LevenshteinGraph {
      *                 if true, search from wordIndex2 -> wordIndex1
      * @return all paths between wordIndex1 and wordIndex2
      */
-    public TreeSet<LinkedList<Integer>> allPathsBetween(int wordIndex1, int wordIndex2, boolean reversed) {
-        LinkedList<Integer> previous = new LinkedList<>(Arrays.asList(wordIndex2));
-        TreeSet<LinkedList<Integer>> toReturn = new TreeSet<>(PATH_COMPARATOR);
+    public ArrayList<LinkedList<Integer>> allPathsBetween(int wordIndex1, int wordIndex2, boolean reversed) {
+        LinkedList<Integer> previous = new LinkedList(Arrays.asList(wordIndex2));
+        ArrayList<LinkedList<Integer>> toReturn = new ArrayList();
 
         if (wordIndex1 == wordIndex2) {
             toReturn.add(previous);
@@ -87,7 +87,7 @@ public class LevenshteinGraph {
         return toReturn;
     }
 
-    private void allPathsBetween(TreeSet<LinkedList<Integer>> paths, LinkedList<Integer> currentPath, int root, ArrayList<Integer> setToSearch, PathAdder pathAdder) {
+    private void allPathsBetween(ArrayList<LinkedList<Integer>> paths, LinkedList<Integer> currentPath, int root, ArrayList<Integer> setToSearch, PathAdder pathAdder) {
         if (setToSearch.contains(root)) {
             pathAdder.addToPath(root, currentPath);
             paths.add(currentPath);
@@ -141,26 +141,6 @@ public class LevenshteinGraph {
     public int searchedSize() {
         return searched.size();
     }
-
-    /**
-     * Compares paths by comparing the first words of each path to each other.
-     * If the first words are identical, the next word is checked, then the next one, and so on.
-     * @return Returns 0 if the paths are identical, < 0 if the first word in o1 comes before o2, and >1 if it comes after.
-     */
-    public static final Comparator<LinkedList<Integer>> PATH_COMPARATOR = (o1, o2) -> {
-        Iterator<Integer> i1 = o1.iterator();
-        Iterator<Integer> i2 = o2.iterator();
-        while (i1.hasNext()) {
-            if (!i2.hasNext()) {
-                return 1;
-            }
-            int c = i1.next().compareTo(i2.next());
-            if (c != 0) {
-                return c;
-            }
-        }
-        return 0;
-    };
 
     public String toString() {
         return "Outer: \n" + outer + "\nSearched: \n" + searched;

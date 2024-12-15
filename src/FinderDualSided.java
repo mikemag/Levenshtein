@@ -9,9 +9,9 @@ public class FinderDualSided extends LevenshteinPathFinder {
      * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between word1 and word2
      */
     @Override
-    public TreeSet<LinkedList<Integer>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
+    public ArrayList<LinkedList<Integer>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
         if (wordIndex1 == wordIndex2) {
-            TreeSet<LinkedList<Integer>> path = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
+            ArrayList<LinkedList<Integer>> path = new ArrayList();
             path.add(new LinkedList<>(Arrays.asList(wordIndex1)));
             return path;
         }
@@ -53,10 +53,10 @@ public class FinderDualSided extends LevenshteinPathFinder {
      * @param intersection Set of words which are shared between the outer layers of graph1 and graph2.
      * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between word1 and word2.
      */
-    private static TreeSet<LinkedList<Integer>> graphsToPaths(LevenshteinGraph graph1, LevenshteinGraph graph2, int wordIndex1, int wordIndex2, ArrayList<Integer> intersection) {
-        TreeSet<LinkedList<Integer>> pathsToReturn = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
-        TreeSet<LinkedList<Integer>> graph1Paths = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
-        TreeSet<LinkedList<Integer>> graph2Paths = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
+    private static ArrayList<LinkedList<Integer>> graphsToPaths(LevenshteinGraph graph1, LevenshteinGraph graph2, int wordIndex1, int wordIndex2, ArrayList<Integer> intersection) {
+        ArrayList<LinkedList<Integer>> pathsToReturn = new ArrayList();
+        ArrayList<LinkedList<Integer>> graph1Paths = new ArrayList(); 
+        ArrayList<LinkedList<Integer>> graph2Paths = new ArrayList();
         for (int word : intersection) {
             graph1Paths.addAll(graph1.allPathsBetween(wordIndex1, word, false));
             graph2Paths.addAll(graph2.allPathsBetween(wordIndex2, word, true));

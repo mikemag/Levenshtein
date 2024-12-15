@@ -9,9 +9,9 @@ public class FinderSingleSided extends LevenshteinPathFinder {
      * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between word1 and word2.
      */
     @Override
-    public TreeSet<LinkedList<Integer>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
+    public ArrayList<LinkedList<Integer>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
         if (wordIndex1 == wordIndex2) {
-            TreeSet<LinkedList<Integer>> path = new TreeSet<>(LevenshteinGraph.PATH_COMPARATOR);
+            ArrayList<LinkedList<Integer>> path = new ArrayList();
             path.add(new LinkedList<>(Arrays.asList(wordIndex1)));
             return path;
         }
