@@ -31,8 +31,10 @@ public class LevenshteinGraph {
      * Once it is finished iterating across outer, it is put into searched and replaced with newOuter.
      * @param dictionary Array of all legal words.
      * @param lengthStartIndexes A map, with the values being the first index of a word in dictionary of a length equal to its key.
+     * @return whether generateNewOuter succeeded. When it fails, that
+     *         means the search has reached a dead-end.
      */
-    public void generateNewOuter(LevenshteinDatabase database) {
+    public boolean generateNewOuter(LevenshteinDatabase database) {
         HashMap<Integer, ArrayList<Integer>> newOuter = new HashMap<>();
 
         searched.putAll(outer);
@@ -53,8 +55,13 @@ public class LevenshteinGraph {
                 }
             }
         }
+        
+        if (newOuter.size() == 0) {
+            return false;
+        }
 
         outer = newOuter;
+        return true;
     }
 
     /**

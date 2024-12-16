@@ -17,16 +17,19 @@ public class FinderSingleSided extends LevenshteinPathFinder {
         }
         LevenshteinGraph g = new LevenshteinGraph(wordIndex1);
         while (true) {
-            g.generateNewOuter(database);
+            boolean generateNewOuterSucceeded = g.generateNewOuter(database);
             if (PRINT_EXTRA) {
                 System.out.println("Outer: " + g.outerSize());
                 System.out.println("Searched: " + g.searchedSize());
                 System.out.println("Total Searched: " + (g.outerSize() + g.searchedSize()));
                 System.out.println("Current Time: " + (System.nanoTime() - startTime) / 1000000 + "\n");
             }
-            if (g.outerSize() == 0) {
+
+            if (!generateNewOuterSucceeded) {
                 return null;
-            } else if (g.outerContains(wordIndex2)) {
+            }
+            
+            if (g.outerContains(wordIndex2)) {
                 return g.allPathsBetween(wordIndex1, wordIndex2, false);
             }
         }

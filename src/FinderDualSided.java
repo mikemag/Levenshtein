@@ -15,16 +15,25 @@ public class FinderDualSided extends LevenshteinPathFinder {
             path.add(new LinkedList<>(Arrays.asList(wordIndex1)));
             return path;
         }
+
         LevenshteinGraph graph1 = new LevenshteinGraph(wordIndex1);
         LevenshteinGraph graph2 = new LevenshteinGraph(wordIndex2);
+
         while(true) {
             int graph1OSize = graph1.outerSize();
             int graph2OSize = graph2.outerSize();
+            boolean generateNewOuterSucceeded;
+
             if (graph1OSize <= graph2OSize) {
-                graph1.generateNewOuter(database);
+                generateNewOuterSucceeded = graph1.generateNewOuter(database);
             } else {
-                graph2.generateNewOuter(database);
+                generateNewOuterSucceeded = graph2.generateNewOuter(database);
             }
+
+            if (!generateNewOuterSucceeded) {
+                return null;
+            } 
+
             if (PRINT_EXTRA) {
                 System.out.println("Start Outer: " + graph1OSize);
                 System.out.println("Target Outer: " + graph2OSize);
@@ -33,10 +42,9 @@ public class FinderDualSided extends LevenshteinPathFinder {
                 System.out.println("Total Searched: " + (graph1OSize + graph2OSize + graph1.searchedSize() + graph2.searchedSize()));
                 System.out.println("Current Time: " + (System.nanoTime() - startTime) / 1000000 + "\n");
             }
-            if (graph1OSize == 0 || graph2OSize == 0) {
-                return null;
-            } 
+
             ArrayList<Integer> outerIntersection = LevenshteinGraph.outerIntersection(graph1, graph2);
+
             if (outerIntersection.size() != 0) {
                 return graphsToPaths(graph1, graph2, wordIndex1, wordIndex2, outerIntersection);
             }
