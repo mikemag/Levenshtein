@@ -1,11 +1,11 @@
-import java.util.*;
+using System.Text;
 
 public abstract class LevenshteinPathFinder {
     /** Set to true to display extra text for debugging. */
-    protected static final boolean PRINT_EXTRA = false;
+    protected const bool PRINT_EXTRA = false;
 
     /**
-     * Returns the paths between two words as an ArrayList of LinkedLists of integers.
+     * Returns the paths between two words as an List of LinkedLists of integers.
      *
      * This format is chosen because generating it is very memory and computationally
      * efficient. The user will most likely have to implement their own method to
@@ -18,7 +18,7 @@ public abstract class LevenshteinPathFinder {
      * @param startTime approximate time (gotten from System.nanoTime()) that this function was called
      * @return the list of paths
      */
-    public abstract ArrayList<LinkedList<Integer>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime);
+    public abstract List<LinkedList<int>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime);
 
     /**
      * Converts paths to a String representation, where each path is on its own line and a change is denoted by [word1]-> [word2]
@@ -28,7 +28,7 @@ public abstract class LevenshteinPathFinder {
      * @param showDistance Whether to add the distance to the end of the String.
      * @return The LinkedList of paths, represented as Strings.
      */
-    public static String pathsToString(ArrayList<LinkedList<Integer>> paths, LevenshteinDatabase database, boolean showNumber, boolean showDistance) {
+    public static String pathsToString(List<LinkedList<int>> paths, LevenshteinDatabase database, bool showNumber, bool showDistance) {
         if (paths == null) {
             return "";
         }
@@ -36,28 +36,29 @@ public abstract class LevenshteinPathFinder {
         int pathNumber = 0;
         StringBuilder pathsBuilder = new StringBuilder();
 
-        paths.sort(LevenshteinPathFinder.PATH_COMPARATOR);
+        paths.Sort(LevenshteinPathFinder.PATH_COMPARATOR);
 
-        for (LinkedList<Integer> path : paths) {
+        foreach (LinkedList<int> path in paths) {
             if (showNumber) {
-                pathsBuilder.append(++pathNumber + ". ");
+                pathsBuilder.Append(++pathNumber + ". ");
             }
 
-            Iterator<Integer> pathIter = path.iterator();
-            pathsBuilder.append(database.wordAt(pathIter.next()));
+            IEnumerator<int> pathIter = path.GetEnumerator();
+            pathIter.MoveNext();
+            pathsBuilder.Append(database.wordAt(pathIter.Current));
 
-            while (pathIter.hasNext()) {
-                pathsBuilder.append("-> " + database.wordAt(pathIter.next()));
+            while (pathIter.MoveNext()) {
+                pathsBuilder.Append("-> " + database.wordAt(pathIter.Current));
             }
-            pathsBuilder.append("\n");
+            pathsBuilder.Append("\n");
         }
 
         if (showDistance) {
-            int distance = paths.get(0).size() - 1;
-            pathsBuilder.append("Distance: " + distance);
+            int distance = paths.ElementAt(0).Count - 1;
+            pathsBuilder.Append("Distance: " + distance);
         }
 
-        return pathsBuilder.toString();
+        return pathsBuilder.ToString();
     }
 
     /**
@@ -70,18 +71,18 @@ public abstract class LevenshteinPathFinder {
      *         nonequal word in o1 comes before o2, and > 1 
      *         if it comes after.
      */
-    public static final Comparator<LinkedList<Integer>> PATH_COMPARATOR = (o1, o2) -> {
-        Iterator<Integer> i1 = o1.iterator();
-        Iterator<Integer> i2 = o2.iterator();
-        while (i1.hasNext()) {
-            if (!i2.hasNext()) {
+    public static readonly Comparer<LinkedList<int>> PATH_COMPARATOR = Comparer<LinkedList<int>>.Create((o1, o2) => {
+        IEnumerator<int> i1 = o1.GetEnumerator();
+        IEnumerator<int> i2 = o2.GetEnumerator();
+        while (i1.MoveNext()) {
+            if (!i2.MoveNext()) {
                 return 1;
             }
-            int c = i1.next().compareTo(i2.next());
+            int c = i1.Current.CompareTo(i2.Current);
             if (c != 0) {
                 return c;
             }
         }
         return 0;
-    };
+    });
 }

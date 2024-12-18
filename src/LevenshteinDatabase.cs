@@ -1,10 +1,7 @@
-import java.io.*;
-import java.util.*;
-
 public abstract class LevenshteinDatabase {
-    public final String[] dictionary;
+    public readonly String[] dictionary;
 
-    protected LevenshteinDatabase(String dictionarySourcePath) throws FileNotFoundException {
+    protected LevenshteinDatabase(String dictionarySourcePath) {
         dictionary = makeDictionary(dictionarySourcePath);
     }
 
@@ -19,16 +16,8 @@ public abstract class LevenshteinDatabase {
      *                   and contain only lowercase letters
      * @return the generated dictionary
      */
-    public static String[] makeDictionary(String sourcepath) throws FileNotFoundException {
-        ArrayList<String> dictionaryList = new ArrayList();
-        Scanner source = new Scanner(new File(sourcepath));
-
-        while(source.hasNext()) {
-            dictionaryList.add(source.next());
-        }
-        source.close();
-
-        return dictionaryList.toArray(new String[0]);
+    public static String[] makeDictionary(String sourcepath) {
+        return File.ReadAllLines(sourcepath);
     }
 
     /**
@@ -37,7 +26,7 @@ public abstract class LevenshteinDatabase {
      * @param wordIndex the index of the word in the dictionary
      * @return an array of the neighbors neighbors
      */
-    public abstract Integer[] findNeighbors(int wordIndex);
+    public abstract int[] findNeighbors(int wordIndex);
 
     /**
      * Returns true if and only if two words are neighboring.
@@ -48,7 +37,7 @@ public abstract class LevenshteinDatabase {
      * @param wordIndex2 the second word index
      * @return if the neighbors are neighboring
      */
-    public abstract boolean areNeighbors(int wordIndex1, int wordIndex2);
+    public abstract bool areNeighbors(int wordIndex1, int wordIndex2);
 
     /**
      * Finds the word at an index in the dictionary.
@@ -56,7 +45,7 @@ public abstract class LevenshteinDatabase {
      * @param wordIndex the index
      * @return the word associated with it
      */
-    public final String wordAt(int wordIndex) {
+    public String wordAt(int wordIndex) {
         return dictionary[wordIndex];
     }
 
@@ -67,8 +56,8 @@ public abstract class LevenshteinDatabase {
      * @param word the word
      * @return the index associated with it
      */
-    public final int getWordIndex(String word) {
-        return Arrays.binarySearch(dictionary, word, COMPARE_WORDS);
+    public int getWordIndex(String word) {
+        return Array.BinarySearch(dictionary, word, COMPARE_WORDS);
     }
 
     /**
@@ -76,13 +65,13 @@ public abstract class LevenshteinDatabase {
      * length then their letter. This can be used for searching
      * or generating the dictionary.
      */
-    public static final Comparator<String> COMPARE_WORDS = (o1, o2) -> {
-        int c = o1.length() - o2.length();
+    public static readonly Comparer<String> COMPARE_WORDS = Comparer<String>.Create((s1, s2) => {
+        int c = s1.Length - s2.Length;
 
         if (c == 0) {
-            return o1.compareTo(o2);
+            return s1.CompareTo(s2);
         } else {
             return c;
         }
-    };
+    });
 }

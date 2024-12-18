@@ -1,49 +1,44 @@
-import java.io.*;
-import java.util.*;
+public class LazyDatabase : LevenshteinDatabase {
+    private readonly Dictionary<int, int> lengthStartIndexes;
 
-public class LazyDatabase extends LevenshteinDatabase {
-    private final HashMap<Integer, Integer> lengthStartIndexes;
-
-    public LazyDatabase(String dictionaryPath) throws FileNotFoundException {
-        super(dictionaryPath);
-
-        lengthStartIndexes = new HashMap<>();
-        for (int i = 0; i < this.dictionary.length; i++) {
-            lengthStartIndexes.putIfAbsent(this.dictionary[i].length(), i);
+    public LazyDatabase(String dictionaryPath) : base(dictionaryPath) {
+        lengthStartIndexes = new Dictionary<int, int>();
+        for (int i = 0; i < this.dictionary.Length; i++) {
+            lengthStartIndexes.TryAdd(this.dictionary[i].Length, i);
         }
     }
 
-    @Override
-    public boolean areNeighbors(int wordIndex1, int wordIndex2) {
+    public override bool areNeighbors(int wordIndex1, int wordIndex2) {
         return areNeighboring(this.wordAt(wordIndex1), this.wordAt(wordIndex2));
     }
 
-    @Override
-    public Integer[] findNeighbors(int wordIndex) {
-        ArrayList<Integer> neighbors = new ArrayList<>();
+    public override int[] findNeighbors(int wordIndex) {
+        List<int> neighbors = new List<int>();
 
         String w = this.wordAt(wordIndex);
-        int endIndex = lengthStartIndexes.getOrDefault(w.length() + 2, dictionary.length);
+        int endIndex = dictionary.Length;
+        lengthStartIndexes.TryGetValue(w.Length + 2, out endIndex);
 
         // Reduces the searching scope to only words with a length that allows them to be adjacent
-        for (int i = lengthStartIndexes.getOrDefault(w.length() - 1, 0); i < endIndex; i++) {
+        int i = 0;
+        for (lengthStartIndexes.TryGetValue(w.Length - 1, out i); i < endIndex; i++) {
             if (areNeighboring(w, this.dictionary[i])) {
-                neighbors.add(i);
+                neighbors.Add(i);
             }
         }
 
-        return neighbors.toArray(new Integer[0]);
+        return neighbors.ToArray();
     }
 
-    protected static boolean areNeighboring(String w1, String w2) {
-        int w1l = w1.length();
-        int w2l = w2.length();
+    protected static bool areNeighboring(String w1, String w2) {
+        int w1l = w1.Length;
+        int w2l = w2.Length;
         int lengthDifference = w1l - w2l;
-        boolean foundDifference = false;
+        bool foundDifference = false;
 
         if (lengthDifference == 0) {
             for (int i = 0; i < w1l; i++) {
-                if (w1.charAt(i) != w2.charAt(i)) {
+                if (w1.ElementAt(i) != w2.ElementAt(i)) {
                     if (foundDifference) {
                         return false;
                     } else {
@@ -65,7 +60,7 @@ public class LazyDatabase extends LevenshteinDatabase {
         }
 
         for (int i = 0, w2Index = 0; i < w1l; i++, w2Index++) {
-            if (w1.charAt(i) != w2.charAt(w2Index)) {
+            if (w1.ElementAt(i) != w2.ElementAt(w2Index)) {
                 if (foundDifference) {
                     return false;
                 } else {
