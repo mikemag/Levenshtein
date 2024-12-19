@@ -30,8 +30,8 @@ public class Levenshtein {
         long time2 = Stopwatch.GetTimestamp();
         Console.WriteLine("Init Time: " + (long)((time2 - time1) * musPerTick / 1000L) + " milliseconds");
 
-        int wordIndex1 = database.getWordIndex(args[3]);
-        int wordIndex2 = database.getWordIndex(args[4]);
+        int wordIndex1 = database.Indexes[args[3]];
+        int wordIndex2 = database.Indexes[args[4]];
 
         long time3 = Stopwatch.GetTimestamp();
         Console.WriteLine(LevenshteinPathFinder.pathsToString(finder.generatePaths(wordIndex1, wordIndex2, database, time1), database, true, true));

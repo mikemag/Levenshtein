@@ -3,26 +3,26 @@ public class LazyDatabase : LevenshteinDatabase {
 
     public LazyDatabase(String dictionaryPath) : base(dictionaryPath) {
         lengthStartIndexes = new Dictionary<int, int>();
-        for (int i = 0; i < this.dictionary.Length; i++) {
-            lengthStartIndexes.TryAdd(this.dictionary[i].Length, i);
+        for (int i = 0; i < this.Words.Length; i++) {
+            lengthStartIndexes.TryAdd(this.Words[i].Length, i);
         }
     }
 
     public override bool areNeighbors(int wordIndex1, int wordIndex2) {
-        return areNeighboring(this.wordAt(wordIndex1), this.wordAt(wordIndex2));
+        return areNeighboring(this.Words[wordIndex1], this.Words[wordIndex2]);
     }
 
     public override int[] findNeighbors(int wordIndex) {
         List<int> neighbors = new List<int>();
 
-        String w = this.wordAt(wordIndex);
-        int endIndex = dictionary.Length;
+        String w = this.Words[wordIndex];
+        int endIndex = Words.Length;
         lengthStartIndexes.TryGetValue(w.Length + 2, out endIndex);
 
         // Reduces the searching scope to only words with a length that allows them to be adjacent
         int i = 0;
         for (lengthStartIndexes.TryGetValue(w.Length - 1, out i); i < endIndex; i++) {
-            if (areNeighboring(w, this.dictionary[i])) {
+            if (areNeighboring(w, this.Words[i])) {
                 neighbors.Add(i);
             }
         }

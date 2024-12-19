@@ -44,13 +44,13 @@ public class CacheDatabase : WildcardDatabase {
 
                 if (valueCharacter == '0') {
                     valueBuilder.Remove(wildcardIndex, 1);
-                    value.Add(this.getWordIndex(valueBuilder.ToString()));
+                    value.Add(this.Indexes[valueBuilder.ToString()]);
                     valueBuilder.Insert(wildcardIndex, "0");
                     continue;
                 }
 
                 valueBuilder[wildcardIndex] = valueCharacter;
-                value.Add(this.getWordIndex(valueBuilder.ToString()));
+                value.Add(this.Indexes[valueBuilder.ToString()]);
             }
 
             this.wildcardMap.Add(key, value);
@@ -58,9 +58,9 @@ public class CacheDatabase : WildcardDatabase {
     }
 
     private int[][] getInitializedNeighborArray() {
-        int[][] initialArray = new int[this.dictionary.Length][];
+        int[][] initialArray = new int[this.Words.Length][];
 
-        for (int i = 0; i < this.dictionary.Length; i++) {
+        for (int i = 0; i < this.Words.Length; i++) {
             initialArray[i] = base.findNeighbors(i);
         }
 

@@ -45,10 +45,10 @@ public abstract class LevenshteinPathFinder {
 
             IEnumerator<int> pathIter = path.GetEnumerator();
             pathIter.MoveNext();
-            pathsBuilder.Append(database.wordAt(pathIter.Current));
+            pathsBuilder.Append(database.Words[pathIter.Current]);
 
             while (pathIter.MoveNext()) {
-                pathsBuilder.Append("-> " + database.wordAt(pathIter.Current));
+                pathsBuilder.Append("-> " + database.Words[pathIter.Current]);
             }
             pathsBuilder.Append("\n");
         }

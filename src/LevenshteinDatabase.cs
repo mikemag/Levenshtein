@@ -1,8 +1,27 @@
 public abstract class LevenshteinDatabase {
-    public readonly String[] dictionary;
+
+    /**
+     * Holds each word in the dictionary used by the database.
+     */
+    public String[] Words { get; }
+
+    /**
+     * This is simply the inverse of Words: It maps the String of
+     * a word to its integer index.
+     */
+    public WordIndices Indexes { get; }
+
+    public class WordIndices { 
+        private String[] words;
+
+        public WordIndices (String[] words) => this.words = words;
+
+        public int this[String key] { get => Array.BinarySearch(words, key, COMPARE_WORDS); }
+    }
 
     protected LevenshteinDatabase(String dictionarySourcePath) {
-        dictionary = makeDictionary(dictionarySourcePath);
+        Words = makeDictionary(dictionarySourcePath);
+        Indexes = new WordIndices(Words);
     }
 
     /**
@@ -38,27 +57,6 @@ public abstract class LevenshteinDatabase {
      * @return if the neighbors are neighboring
      */
     public abstract bool areNeighbors(int wordIndex1, int wordIndex2);
-
-    /**
-     * Finds the word at an index in the dictionary.
-     *
-     * @param wordIndex the index
-     * @return the word associated with it
-     */
-    public String wordAt(int wordIndex) {
-        return dictionary[wordIndex];
-    }
-
-    /**
-     * Finds the index associated with a word using binary
-     * search.
-     *
-     * @param word the word
-     * @return the index associated with it
-     */
-    public int getWordIndex(String word) {
-        return Array.BinarySearch(dictionary, word, COMPARE_WORDS);
-    }
 
     /**
      * Compares words in the dictionary based first on their

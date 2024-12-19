@@ -48,7 +48,7 @@ public class WildcardDatabase : LevenshteinDatabase {
     }
 
     private void addEachWildcard(int wordIndex, Object dataStructure, Action<int, String, Object> wildcardDataStructureAdder) {
-        String word = this.wordAt(wordIndex);
+        String word = this.Words[wordIndex];
         StringBuilder cardBuilder = new StringBuilder(word);
         int wordLength = word.Length;
 
@@ -91,7 +91,7 @@ public class WildcardDatabase : LevenshteinDatabase {
     private Dictionary<String, List<int>> getInitializedWildcardMap() {
         Dictionary<String, List<int>> returnMap = new Dictionary<String, List<int>>();
 
-        for (int i = 0; i < this.dictionary.Length; i++) {
+        for (int i = 0; i < this.Words.Length; i++) {
             putEachWildcard(i, returnMap);
         }
         
@@ -114,14 +114,14 @@ public class WildcardDatabase : LevenshteinDatabase {
             entryBuilder.Append(key);
 
             foreach (int value in new SortedSet<int>(entry.Value)) {
-                String word = this.wordAt(value);
+                String word = this.Words[value];
 
                 if (word.Length < key.Length) {
                     entryBuilder.Append(" 0");
                     continue;
                 }
 
-                entryBuilder.Append(" " + this.wordAt(value).ElementAt(keyWildcardIndex));
+                entryBuilder.Append(" " + this.Words[value].ElementAt(keyWildcardIndex));
             }
 
             mapBuilder.Append(entryBuilder + "\n");
