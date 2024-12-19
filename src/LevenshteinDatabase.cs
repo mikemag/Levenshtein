@@ -27,23 +27,13 @@ public abstract class LevenshteinDatabase {
     /**
      * Reads a file at the specified location and returns a word
      * list generated reading the file. 
-     *
-     * @param sourcepath path to the file containing the word list.
-     *                   This file must be sorted sequentially with
-     *                   alphabetical order being the tiebreaker,
-     *                   contain one and only one word per line,
-     *                   and contain only lowercase letters
-     * @return the generated dictionary
      */
     public static String[] makeDictionary(String sourcepath) {
         return File.ReadAllLines(sourcepath);
     }
 
     /**
-     * Returns the set of all neighbors of a word in an array.
-     *
-     * @param wordIndex the index of the word in the dictionary
-     * @return an array of the neighbors neighbors
+     * Returns the set of all neighbors of a word as an array.
      */
     public abstract int[] findNeighbors(int wordIndex);
 
@@ -51,10 +41,6 @@ public abstract class LevenshteinDatabase {
      * Returns true if and only if two words are neighboring.
      * While this shouldn't be needed for good Levenshtein
      * algorithms, it has been left as public.
-     *
-     * @param wordIndex1 the first word index
-     * @param wordIndex2 the second word index
-     * @return if the neighbors are neighboring
      */
     public abstract bool areNeighbors(int wordIndex1, int wordIndex2);
 

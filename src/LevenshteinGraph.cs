@@ -10,7 +10,6 @@ public class LevenshteinGraph {
 
     /**
      * Initializes the graph, with searched being completely empty and outer only containing the root word with no previous.
-     * @param root Word to put in the outer layer of the graph.
      */
     public LevenshteinGraph(int root) {
         searched = new Dictionary<int, List<int>>();
@@ -27,10 +26,6 @@ public class LevenshteinGraph {
      * The word is also added to the previous of each neighbor.
      * If a word generates a neighbor that's already in the new outer, the word is simply added to the previous of that neighbor.
      * Once it is finished iterating across outer, it is put into searched and replaced with newOuter.
-     * @param dictionary Array of all legal words.
-     * @param lengthStartIndexes A map, with the values being the first index of a word in dictionary of a length equal to its key.
-     * @return whether generateNewOuter succeeded. When it fails, that
-     *         means the search has reached a dead-end.
      */
     public bool generateNewOuter(LevenshteinDatabase database) {
         Dictionary<int, List<int>> newOuter = new Dictionary<int, List<int>>();
@@ -75,12 +70,6 @@ public class LevenshteinGraph {
      * every previous word), adding each to a copy of the path and recursively
      * calling the helper method with these copies, returning once the path has
      * reached the its destination word.
-     *
-     * @param wordIndex1 first word index
-     * @param wordIndex2 second word index
-     * @param reversed if false, search from wordIndex1 -> wordIndex2
-     *                 if true, search from wordIndex2 -> wordIndex1
-     * @return all paths between wordIndex1 and wordIndex2
      */
     public List<LinkedList<int>> allPathsBetween(int wordIndex1, int wordIndex2, bool reversed) {
         LinkedList<int> previous = new LinkedList<int>();
@@ -115,9 +104,6 @@ public class LevenshteinGraph {
 
     /**
      * Checks if the outer of this graph contains wordIndex.
-     * This method is for single-sided levenshtein algorithms, where each layer is checked against a single target word.
-     * @param wordIndex Word to check.
-     * @return True if the outer of this graph contains wordIndex, false otherwise.
      */
     public bool outerContains(int wordIndex) {
         return outer.ContainsKey(wordIndex);
@@ -143,12 +129,10 @@ public class LevenshteinGraph {
         return intersection;
     }
 
-    /** @return The size of outer */
     public int outerSize() {
         return outer.Count;
     }
 
-    /** @return The size of searched */
     public int searchedSize() {
         return searched.Count;
     }

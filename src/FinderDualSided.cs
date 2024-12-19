@@ -1,11 +1,4 @@
 public class FinderDualSided : LevenshteinPathFinder {
-    /**
-     * TODO: ADD PROPER DESCRIPTION
-     * @param word1 Starting word.
-     * @param word2 Ending word.
-     * @param startTime Approximate time (gotten from System.nanoTime()) that this function was called.
-     * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between word1 and word2
-     */
     public override List<LinkedList<int>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
         if (wordIndex1 == wordIndex2) {
             List<LinkedList<int>> path = new List<LinkedList<int>>();
@@ -53,12 +46,6 @@ public class FinderDualSided : LevenshteinPathFinder {
     /**
      * On each graph, the paths between the root word and the intersection words are found.
      * Then, these paths are "stitched together", such that all unique paths from the staring word to the ending word.
-     * @param graph1 Starting word graph.
-     * @param graph2 Ending word graph.
-     * @param word1 Starting word.
-     * @param word2 Ending word.
-     * @param intersection Set of words which are shared between the outer layers of graph1 and graph2.
-     * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between word1 and word2.
      */
     private static List<LinkedList<int>> graphsToPaths(LevenshteinGraph graph1, LevenshteinGraph graph2, int wordIndex1, int wordIndex2, List<int> intersection) {
         List<LinkedList<int>> pathsToReturn = new List<LinkedList<int>>();

@@ -1,11 +1,4 @@
 public class FinderSingleSided : LevenshteinPathFinder {
-    /**
-     * TODO: ADD PROPER DESCRIPTION
-     * @param word1 Starting word.
-     * @param word2 Ending word.
-     * @param startTime Approximate time (gotten from System.nanoTime()) that this function was called.
-     * @return A TreeSet of LinkedLists, with each list representing a unique levenshtein path between word1 and word2.
-     */
     public override List<LinkedList<int>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
         if (wordIndex1 == wordIndex2) {
             List<LinkedList<int>> path = new List<LinkedList<int>>();
