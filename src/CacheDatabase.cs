@@ -4,30 +4,30 @@ public class CacheDatabase : WildcardDatabase {
     private readonly int[][] neighborArray;
 
     public CacheDatabase(String dictionaryPath) : base(dictionaryPath) {
-        neighborArray = getInitializedNeighborArray();
+        neighborArray = GetInitializedNeighborArray();
     }
 
     public CacheDatabase(String dictionaryPath, String wildcardMapPath) : base (dictionaryPath, false) {
-        fillWildcardMap(wildcardMapPath);
+        FillWildcardMap(wildcardMapPath);
 
-        neighborArray = getInitializedNeighborArray();
+        neighborArray = GetInitializedNeighborArray();
     }
 
-    public override int[] findNeighbors(int wordIndex) { 
+    public override int[] FindNeighbors(int wordIndex) { 
         return neighborArray[wordIndex];
     }
 
-    public override bool areNeighbors(int wordIndex1, int wordIndex2) {
-        int[] word1Neighbors = findNeighbors(wordIndex1);
-        int[] word2Neighbors = findNeighbors(wordIndex2);
+    public override bool AreNeighbors(int wordIndex1, int wordIndex2) {
+        int[] word1Neighbors = FindNeighbors(wordIndex1);
+        int[] word2Neighbors = FindNeighbors(wordIndex2);
 
         if (word1Neighbors.Length <= word2Neighbors.Length) {
-            return findNeighbors(wordIndex1).Contains(wordIndex2);
+            return FindNeighbors(wordIndex1).Contains(wordIndex2);
         }
-        return findNeighbors(wordIndex2).Contains(wordIndex1);
+        return FindNeighbors(wordIndex2).Contains(wordIndex1);
     }
 
-    private void fillWildcardMap(String inputFile) {
+    private void FillWildcardMap(String inputFile) {
         /*StreamReader input = new StreamReader(inputFile);*/
         String[] lines = File.ReadAllLines(inputFile);
 
@@ -35,7 +35,7 @@ public class CacheDatabase : WildcardDatabase {
             String[] line = lineString.Split(" "); 
             String key = line[0];
             List<int> value = new List<int>();
-            int wildcardIndex = WildcardDatabase.getWildcardIndex(key);
+            int wildcardIndex = WildcardDatabase.GetWildcardIndex(key);
 
             StringBuilder valueBuilder = new StringBuilder(key);
 
@@ -57,19 +57,19 @@ public class CacheDatabase : WildcardDatabase {
         }
     }
 
-    private int[][] getInitializedNeighborArray() {
+    private int[][] GetInitializedNeighborArray() {
         int[][] initialArray = new int[this.Words.Length][];
 
         for (int i = 0; i < this.Words.Length; i++) {
-            initialArray[i] = base.findNeighbors(i);
+            initialArray[i] = base.FindNeighbors(i);
         }
 
         return initialArray;
     }
 
-    public void wildcardMapToFile(String inputPath) {
+    public void WildcardMapToFile(String inputPath) {
         StreamWriter writer = new StreamWriter(inputPath);
 
-        writer.Write(this.wildcardMapToString());
+        writer.Write(this.WildcardMapToString());
     }
 }

@@ -8,11 +8,11 @@ public class LazyDatabase : LevenshteinDatabase {
         }
     }
 
-    public override bool areNeighbors(int wordIndex1, int wordIndex2) {
-        return areNeighboring(this.Words[wordIndex1], this.Words[wordIndex2]);
+    public override bool AreNeighbors(int wordIndex1, int wordIndex2) {
+        return AreNeighboring(this.Words[wordIndex1], this.Words[wordIndex2]);
     }
 
-    public override int[] findNeighbors(int wordIndex) {
+    public override int[] FindNeighbors(int wordIndex) {
         List<int> neighbors = new List<int>();
 
         String w = this.Words[wordIndex];
@@ -22,7 +22,7 @@ public class LazyDatabase : LevenshteinDatabase {
         // Reduces the searching scope to only words with a length that allows them to be adjacent
         int i = 0;
         for (lengthStartIndexes.TryGetValue(w.Length - 1, out i); i < endIndex; i++) {
-            if (areNeighboring(w, this.Words[i])) {
+            if (AreNeighboring(w, this.Words[i])) {
                 neighbors.Add(i);
             }
         }
@@ -30,7 +30,7 @@ public class LazyDatabase : LevenshteinDatabase {
         return neighbors.ToArray();
     }
 
-    protected static bool areNeighboring(String w1, String w2) {
+    protected static bool AreNeighboring(String w1, String w2) {
         int w1l = w1.Length;
         int w2l = w2.Length;
         int lengthDifference = w1l - w2l;

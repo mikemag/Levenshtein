@@ -1,5 +1,5 @@
 public class FinderSingleSided : LevenshteinPathFinder {
-    public override List<LinkedList<int>> generatePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
+    public override List<LinkedList<int>> GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
         if (wordIndex1 == wordIndex2) {
             List<LinkedList<int>> path = new List<LinkedList<int>>();
             LinkedList<int> pathList = new LinkedList<int>();
@@ -9,11 +9,11 @@ public class FinderSingleSided : LevenshteinPathFinder {
         }
         LevenshteinGraph g = new LevenshteinGraph(wordIndex1);
         while (true) {
-            bool generateNewOuterSucceeded = g.generateNewOuter(database);
+            bool generateNewOuterSucceeded = g.GenerateNewOuter(database);
             if (PRINT_EXTRA) {
-                Console.WriteLine("Outer: " + g.outerSize());
-                Console.WriteLine("Searched: " + g.searchedSize());
-                Console.WriteLine("Total Searched: " + (g.outerSize() + g.searchedSize()));
+                Console.WriteLine("Outer: " + g.OuterSize());
+                Console.WriteLine("Searched: " + g.SearchedSize());
+                Console.WriteLine("Total Searched: " + (g.OuterSize() + g.SearchedSize()));
                 Console.WriteLine("Current Time: " + (DateTime.Now.Nanosecond - startTime) / 1000000 + "\n");
             }
 
@@ -21,8 +21,8 @@ public class FinderSingleSided : LevenshteinPathFinder {
                 return null;
             }
             
-            if (g.outerContains(wordIndex2)) {
-                return g.allPathsBetween(wordIndex1, wordIndex2, false);
+            if (g.OuterContains(wordIndex2)) {
+                return g.AllPathsBetween(wordIndex1, wordIndex2, false);
             }
         }
     }

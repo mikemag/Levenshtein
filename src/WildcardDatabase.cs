@@ -4,21 +4,21 @@ public class WildcardDatabase : LevenshteinDatabase {
     protected readonly Dictionary<String, List<int>> wildcardMap;
 
     public WildcardDatabase(String dictionaryPath) : base(dictionaryPath) {
-        wildcardMap = getInitializedWildcardMap();
+        wildcardMap = GetInitializedWildcardMap();
     }
 
     protected WildcardDatabase(String dictionaryPath, bool initializeWildcardMap) : base(dictionaryPath) {
         if (initializeWildcardMap) {
-            wildcardMap = getInitializedWildcardMap();
+            wildcardMap = GetInitializedWildcardMap();
         } else {
             wildcardMap = new Dictionary<String, List<int>>();
         }
     }
 
-    public List<String> localWildcardIdentities(int wordIndex) {
+    public List<String> LocalWildcardIdentities(int wordIndex) {
         List<String> identities = new List<String>();
 
-        addEachWildcard(wordIndex, identities, (wildcardSubstitute, wildcardIdentity, 
+        AddEachWildcard(wordIndex, identities, (wildcardSubstitute, wildcardIdentity, 
                 wildcardListObject) => {
             if (wildcardMap.ContainsKey(wildcardIdentity)) {
                 ((List<String>)wildcardListObject).Add(wildcardIdentity);
@@ -27,18 +27,18 @@ public class WildcardDatabase : LevenshteinDatabase {
         return identities;
     }
 
-    public List<String> allWildcardIdentities(int wordIndex) {
+    public List<String> AllWildcardIdentities(int wordIndex) {
         List<String> identities = new List<String>();
 
-        addEachWildcard(wordIndex, identities, (wildcardSubstitute, wildcardIdentity, 
+        AddEachWildcard(wordIndex, identities, (wildcardSubstitute, wildcardIdentity, 
                 wildcardMapObject) => {
             ((List<String>)wildcardMapObject).Add(wildcardIdentity);
         });
         return identities;
     }
 
-    private void putEachWildcard(int wordIndex, Dictionary<String, List<int>> destination) {
-        addEachWildcard(wordIndex, destination, (wildcardSubstitute, wildcardIdentity, 
+    private void PutEachWildcard(int wordIndex, Dictionary<String, List<int>> destination) {
+        AddEachWildcard(wordIndex, destination, (wildcardSubstitute, wildcardIdentity, 
                 wildcardMapObject) => {
             Dictionary<String, List<int>> map = (Dictionary<String, List<int>>)wildcardMapObject;
 
@@ -47,7 +47,7 @@ public class WildcardDatabase : LevenshteinDatabase {
         });
     }
 
-    private void addEachWildcard(int wordIndex, Object dataStructure, Action<int, String, Object> wildcardDataStructureAdder) {
+    private void AddEachWildcard(int wordIndex, Object dataStructure, Action<int, String, Object> wildcardDataStructureAdder) {
         String word = this.Words[wordIndex];
         StringBuilder cardBuilder = new StringBuilder(word);
         int wordLength = word.Length;
@@ -70,14 +70,14 @@ public class WildcardDatabase : LevenshteinDatabase {
         }
     }
 
-    public override bool areNeighbors(int wordIndex1, int wordIndex2) {
-        return findNeighbors(wordIndex1).Contains(wordIndex2);
+    public override bool AreNeighbors(int wordIndex1, int wordIndex2) {
+        return FindNeighbors(wordIndex1).Contains(wordIndex2);
     }
     
-    public override int[] findNeighbors(int wordIndex) {
+    public override int[] FindNeighbors(int wordIndex) {
         List<int> returnList = new List<int>();
 
-        foreach (String wildcard in this.localWildcardIdentities(wordIndex)) {
+        foreach (String wildcard in this.LocalWildcardIdentities(wordIndex)) {
             foreach (int neighborIndex in wildcardMap[wildcard]) {
                 if (neighborIndex != wordIndex) {
                     returnList.Add(neighborIndex);
@@ -88,11 +88,11 @@ public class WildcardDatabase : LevenshteinDatabase {
         return returnList.ToArray();
     }
 
-    private Dictionary<String, List<int>> getInitializedWildcardMap() {
+    private Dictionary<String, List<int>> GetInitializedWildcardMap() {
         Dictionary<String, List<int>> returnMap = new Dictionary<String, List<int>>();
 
         for (int i = 0; i < this.Words.Length; i++) {
-            putEachWildcard(i, returnMap);
+            PutEachWildcard(i, returnMap);
         }
         
         foreach (KeyValuePair<String, List<int>> entry in returnMap) {
@@ -104,12 +104,12 @@ public class WildcardDatabase : LevenshteinDatabase {
         return returnMap;
     }
 
-    public String wildcardMapToString() {
+    public String WildcardMapToString() {
         StringBuilder mapBuilder = new StringBuilder();
 
         foreach (KeyValuePair<String, List<int>> entry in wildcardMap) {
             String key = entry.Key;
-            int keyWildcardIndex = WildcardDatabase.getWildcardIndex(key);
+            int keyWildcardIndex = WildcardDatabase.GetWildcardIndex(key);
             StringBuilder entryBuilder = new StringBuilder();
             entryBuilder.Append(key);
 
@@ -130,7 +130,7 @@ public class WildcardDatabase : LevenshteinDatabase {
         return mapBuilder.ToString();
     }
 
-    public static int getWildcardIndex(String wildcard) {
+    public static int GetWildcardIndex(String wildcard) {
         for (int i = 0; i < wildcard.Length; i++) {
             if (wildcard.ElementAt(i) != '*') {
                 continue;

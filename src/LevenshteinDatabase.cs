@@ -20,7 +20,7 @@ public abstract class LevenshteinDatabase {
     }
 
     protected LevenshteinDatabase(String dictionarySourcePath) {
-        Words = makeDictionary(dictionarySourcePath);
+        Words = MakeDictionary(dictionarySourcePath);
         Indexes = new WordIndices(Words);
     }
 
@@ -28,21 +28,21 @@ public abstract class LevenshteinDatabase {
      * Reads a file at the specified location and returns a word
      * list generated reading the file. 
      */
-    public static String[] makeDictionary(String sourcepath) {
+    public static String[] MakeDictionary(String sourcepath) {
         return File.ReadAllLines(sourcepath);
     }
 
     /**
      * Returns the set of all neighbors of a word as an array.
      */
-    public abstract int[] findNeighbors(int wordIndex);
+    public abstract int[] FindNeighbors(int wordIndex);
 
     /**
      * Returns true if and only if two words are neighboring.
      * While this shouldn't be needed for good Levenshtein
      * algorithms, it has been left as public.
      */
-    public abstract bool areNeighbors(int wordIndex1, int wordIndex2);
+    public abstract bool AreNeighbors(int wordIndex1, int wordIndex2);
 
     /**
      * Compares words in the dictionary based first on their

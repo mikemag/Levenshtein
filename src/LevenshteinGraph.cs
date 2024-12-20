@@ -27,7 +27,7 @@ public class LevenshteinGraph {
      * If a word generates a neighbor that's already in the new outer, the word is simply added to the previous of that neighbor.
      * Once it is finished iterating across outer, it is put into searched and replaced with newOuter.
      */
-    public bool generateNewOuter(LevenshteinDatabase database) {
+    public bool GenerateNewOuter(LevenshteinDatabase database) {
         Dictionary<int, List<int>> newOuter = new Dictionary<int, List<int>>();
 
         /*searched = searched.Concat(outer).ToDictionary(pair => pair.Key, pair => pair.Value);*/
@@ -37,7 +37,7 @@ public class LevenshteinGraph {
         }
 
         foreach (int outerWord in outer.Keys) {
-            int[] neighbors = database.findNeighbors(outerWord);
+            int[] neighbors = database.FindNeighbors(outerWord);
 
             foreach (int neighbor in neighbors) {
                 if (searched.ContainsKey(neighbor)) {
@@ -71,7 +71,7 @@ public class LevenshteinGraph {
      * calling the helper method with these copies, returning once the path has
      * reached the its destination word.
      */
-    public List<LinkedList<int>> allPathsBetween(int wordIndex1, int wordIndex2, bool reversed) {
+    public List<LinkedList<int>> AllPathsBetween(int wordIndex1, int wordIndex2, bool reversed) {
         LinkedList<int> previous = new LinkedList<int>();
         previous.AddFirst(wordIndex2);
         List<LinkedList<int>> toReturn = new List<LinkedList<int>>();
@@ -79,15 +79,15 @@ public class LevenshteinGraph {
         if (wordIndex1 == wordIndex2) {
             toReturn.Add(previous);
         } else if (reversed) {
-            allPathsBetween(toReturn, previous, wordIndex1, outer[wordIndex2], (i, p) => p.AddLast(i));
+            AllPathsBetween(toReturn, previous, wordIndex1, outer[wordIndex2], (i, p) => p.AddLast(i));
         } else {
-            allPathsBetween(toReturn, previous, wordIndex1, outer[wordIndex2], (i, p) => p.AddFirst(i));
+            AllPathsBetween(toReturn, previous, wordIndex1, outer[wordIndex2], (i, p) => p.AddFirst(i));
         }
 
         return toReturn;
     }
 
-    private void allPathsBetween(List<LinkedList<int>> paths, LinkedList<int> currentPath, int root, List<int> setToSearch, Action<int, LinkedList<int>> pathAdder) {
+    private void AllPathsBetween(List<LinkedList<int>> paths, LinkedList<int> currentPath, int root, List<int> setToSearch, Action<int, LinkedList<int>> pathAdder) {
         if (setToSearch.Contains(root)) {
             pathAdder(root, currentPath);
             paths.Add(currentPath);
@@ -98,18 +98,18 @@ public class LevenshteinGraph {
             LinkedList<int> newPrevious = new LinkedList<int>(currentPath);
 
             pathAdder(wordIndex, newPrevious);
-            allPathsBetween(paths, newPrevious, root, searched[wordIndex], pathAdder);
+            AllPathsBetween(paths, newPrevious, root, searched[wordIndex], pathAdder);
         }
     }
 
     /**
      * Checks if the outer of this graph contains wordIndex.
      */
-    public bool outerContains(int wordIndex) {
+    public bool OuterContains(int wordIndex) {
         return outer.ContainsKey(wordIndex);
     }
 
-    public static List<int> outerIntersection(LevenshteinGraph graph1, LevenshteinGraph graph2) {
+    public static List<int> OuterIntersection(LevenshteinGraph graph1, LevenshteinGraph graph2) {
         List<int> intersection = new List<int>();
         Dictionary<int, List<int>> outerCopy = graph1.outer;
         Dictionary<int, List<int>> otherOuter = graph2.outer;
@@ -129,15 +129,15 @@ public class LevenshteinGraph {
         return intersection;
     }
 
-    public int outerSize() {
+    public int OuterSize() {
         return outer.Count;
     }
 
-    public int searchedSize() {
+    public int SearchedSize() {
         return searched.Count;
     }
 
-    public String toString() {
+    public override String ToString() {
         return "Outer: \n" + outer + "\nSearched: \n" + searched;
     }
 }
