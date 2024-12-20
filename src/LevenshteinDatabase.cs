@@ -1,5 +1,4 @@
 public abstract class LevenshteinDatabase {
-
     /**
      * Holds each word in the dictionary used by the database.
      */
@@ -12,11 +11,11 @@ public abstract class LevenshteinDatabase {
     public WordIndices Indexes { get; }
 
     public class WordIndices { 
-        private String[] words;
+        private String[] _words;
 
-        public WordIndices (String[] words) => this.words = words;
+        public WordIndices (String[] words) => _words = words;
 
-        public int this[String key] { get => Array.BinarySearch(words, key, COMPARE_WORDS); }
+        public int this[String key] { get => Array.BinarySearch(_words, key, COMPARE_WORDS); }
     }
 
     protected LevenshteinDatabase(String dictionarySourcePath) {

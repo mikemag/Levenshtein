@@ -1,17 +1,17 @@
 using System.Text;
 
 public class WildcardDatabase : LevenshteinDatabase {
-    protected readonly Dictionary<String, List<int>> wildcardMap;
+    protected readonly Dictionary<String, List<int>> _wildcardMap;
 
     public WildcardDatabase(String dictionaryPath) : base(dictionaryPath) {
-        wildcardMap = GetInitializedWildcardMap();
+        _wildcardMap = GetInitializedWildcardMap();
     }
 
     protected WildcardDatabase(String dictionaryPath, bool initializeWildcardMap) : base(dictionaryPath) {
         if (initializeWildcardMap) {
-            wildcardMap = GetInitializedWildcardMap();
+            _wildcardMap = GetInitializedWildcardMap();
         } else {
-            wildcardMap = new Dictionary<String, List<int>>();
+            _wildcardMap = new Dictionary<String, List<int>>();
         }
     }
 
@@ -20,7 +20,7 @@ public class WildcardDatabase : LevenshteinDatabase {
 
         AddEachWildcard(wordIndex, identities, (wildcardSubstitute, wildcardIdentity, 
                 wildcardListObject) => {
-            if (wildcardMap.ContainsKey(wildcardIdentity)) {
+            if (_wildcardMap.ContainsKey(wildcardIdentity)) {
                 ((List<String>)wildcardListObject).Add(wildcardIdentity);
             }
         });
@@ -78,7 +78,7 @@ public class WildcardDatabase : LevenshteinDatabase {
         List<int> returnList = new List<int>();
 
         foreach (String wildcard in this.LocalWildcardIdentities(wordIndex)) {
-            foreach (int neighborIndex in wildcardMap[wildcard]) {
+            foreach (int neighborIndex in _wildcardMap[wildcard]) {
                 if (neighborIndex != wordIndex) {
                     returnList.Add(neighborIndex);
                 }
@@ -107,7 +107,7 @@ public class WildcardDatabase : LevenshteinDatabase {
     public String WildcardMapToString() {
         StringBuilder mapBuilder = new StringBuilder();
 
-        foreach (KeyValuePair<String, List<int>> entry in wildcardMap) {
+        foreach (KeyValuePair<String, List<int>> entry in _wildcardMap) {
             String key = entry.Key;
             int keyWildcardIndex = WildcardDatabase.GetWildcardIndex(key);
             StringBuilder entryBuilder = new StringBuilder();

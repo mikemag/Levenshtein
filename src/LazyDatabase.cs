@@ -1,10 +1,10 @@
 public class LazyDatabase : LevenshteinDatabase {
-    private readonly Dictionary<int, int> lengthStartIndexes;
+    private readonly Dictionary<int, int> _lengthStartIndexes;
 
     public LazyDatabase(String dictionaryPath) : base(dictionaryPath) {
-        lengthStartIndexes = new Dictionary<int, int>();
+        _lengthStartIndexes = new Dictionary<int, int>();
         for (int i = 0; i < this.Words.Length; i++) {
-            lengthStartIndexes.TryAdd(this.Words[i].Length, i);
+            _lengthStartIndexes.TryAdd(this.Words[i].Length, i);
         }
     }
 
@@ -17,11 +17,11 @@ public class LazyDatabase : LevenshteinDatabase {
 
         String w = this.Words[wordIndex];
         int endIndex = Words.Length;
-        lengthStartIndexes.TryGetValue(w.Length + 2, out endIndex);
+        _lengthStartIndexes.TryGetValue(w.Length + 2, out endIndex);
 
         // Reduces the searching scope to only words with a length that allows them to be adjacent
         int i = 0;
-        for (lengthStartIndexes.TryGetValue(w.Length - 1, out i); i < endIndex; i++) {
+        for (_lengthStartIndexes.TryGetValue(w.Length - 1, out i); i < endIndex; i++) {
             if (AreNeighboring(w, this.Words[i])) {
                 neighbors.Add(i);
             }

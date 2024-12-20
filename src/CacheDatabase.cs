@@ -1,20 +1,20 @@
 using System.Text;
 
 public class CacheDatabase : WildcardDatabase {
-    private readonly int[][] neighborArray;
+    private readonly int[][] _neighborArray;
 
     public CacheDatabase(String dictionaryPath) : base(dictionaryPath) {
-        neighborArray = GetInitializedNeighborArray();
+        _neighborArray = GetInitializedNeighborArray();
     }
 
     public CacheDatabase(String dictionaryPath, String wildcardMapPath) : base (dictionaryPath, false) {
         FillWildcardMap(wildcardMapPath);
 
-        neighborArray = GetInitializedNeighborArray();
+        _neighborArray = GetInitializedNeighborArray();
     }
 
     public override int[] FindNeighbors(int wordIndex) { 
-        return neighborArray[wordIndex];
+        return _neighborArray[wordIndex];
     }
 
     public override bool AreNeighbors(int wordIndex1, int wordIndex2) {
@@ -53,7 +53,7 @@ public class CacheDatabase : WildcardDatabase {
                 value.Add(this.Indexes[valueBuilder.ToString()]);
             }
 
-            this.wildcardMap.Add(key, value);
+            this._wildcardMap.Add(key, value);
         }
     }
 
