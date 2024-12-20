@@ -68,8 +68,6 @@ public class CacheDatabase : WildcardDatabase {
     }
 
     public void WildcardMapToFile(String inputPath) {
-        StreamWriter writer = new StreamWriter(inputPath);
-
-        writer.Write(this.WildcardMapToString());
+        File.WriteAllText(inputPath, this.WildcardMapToString());
     }
 }
