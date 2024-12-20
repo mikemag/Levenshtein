@@ -12,8 +12,8 @@ public class FinderDualSided : LevenshteinPathFinder {
         LevenshteinGraph graph2 = new LevenshteinGraph(wordIndex2);
 
         while(true) {
-            int graph1OSize = graph1.OuterSize();
-            int graph2OSize = graph2.OuterSize();
+            int graph1OSize = graph1.OuterCount;
+            int graph2OSize = graph2.OuterCount;
             bool generateNewOuterSucceeded;
 
             if (graph1OSize <= graph2OSize) {
@@ -29,9 +29,9 @@ public class FinderDualSided : LevenshteinPathFinder {
             if (PRINT_EXTRA) {
                 Console.WriteLine("Start Outer: " + graph1OSize);
                 Console.WriteLine("Target Outer: " + graph2OSize);
-                Console.WriteLine("Start Searched: " + graph1.SearchedSize());
-                Console.WriteLine("Target Searched: " + graph2.SearchedSize());
-                Console.WriteLine("Total Searched: " + (graph1OSize + graph2OSize + graph1.SearchedSize() + graph2.SearchedSize()));
+                Console.WriteLine("Start Searched: " + graph1.SearchedCount);
+                Console.WriteLine("Target Searched: " + graph2.SearchedCount);
+                Console.WriteLine("Total Searched: " + (graph1OSize + graph2OSize + graph1.SearchedCount + graph2.SearchedCount));
                 Console.WriteLine("Current Time: " + (DateTime.Now.Nanosecond - startTime) / 1000000 + "\n");
             }
 

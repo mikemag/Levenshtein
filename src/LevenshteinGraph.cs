@@ -1,4 +1,7 @@
 public class LevenshteinGraph {
+    public int OuterCount { get => outer.Count; }
+    public int SearchedCount { get => searched.Count; }
+
     private Dictionary<int, List<int>> outer;
 
     /**
@@ -127,14 +130,6 @@ public class LevenshteinGraph {
         }
 
         return intersection;
-    }
-
-    public int OuterSize() {
-        return outer.Count;
-    }
-
-    public int SearchedSize() {
-        return searched.Count;
     }
 
     public override String ToString() {

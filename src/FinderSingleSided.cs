@@ -11,9 +11,9 @@ public class FinderSingleSided : LevenshteinPathFinder {
         while (true) {
             bool generateNewOuterSucceeded = g.GenerateNewOuter(database);
             if (PRINT_EXTRA) {
-                Console.WriteLine("Outer: " + g.OuterSize());
-                Console.WriteLine("Searched: " + g.SearchedSize());
-                Console.WriteLine("Total Searched: " + (g.OuterSize() + g.SearchedSize()));
+                Console.WriteLine("Outer: " + g.OuterCount);
+                Console.WriteLine("Searched: " + g.SearchedCount);
+                Console.WriteLine("Total Searched: " + (g.OuterCount + g.SearchedCount));
                 Console.WriteLine("Current Time: " + (DateTime.Now.Nanosecond - startTime) / 1000000 + "\n");
             }
 
