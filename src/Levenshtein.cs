@@ -34,12 +34,12 @@ public class Levenshtein {
         int wordIndex2 = database.Indexes[args[4]];
 
         long time3 = Stopwatch.GetTimestamp();
-        Console.WriteLine(LevenshteinPathFinder.PathsToString(finder.GeneratePaths(wordIndex1, wordIndex2, database, time1), database, true, true));
+        Console.WriteLine(LevenshteinPathFinder.PathsToString(finder.GeneratePaths(wordIndex1, wordIndex2, database), database, true, true));
         Console.WriteLine("Done in " + (long)((Stopwatch.GetTimestamp() - time3) * musPerTick) + " microseconds.");
         long time4 = Stopwatch.GetTimestamp();
 
         for (int i = 0; i < 100000; i++) {
-            LevenshteinPathFinder.PathsToString(finder.GeneratePaths(wordIndex1, wordIndex2, database, time2), database, false, false);
+            LevenshteinPathFinder.PathsToString(finder.GeneratePaths(wordIndex1, wordIndex2, database), database, false, false);
         }
         Console.WriteLine("Average Time: " + (long)(((Stopwatch.GetTimestamp() - time4) * musPerTick) / 100000) + " microseconds");
     }

@@ -1,5 +1,5 @@
 public class FinderSingleSided : LevenshteinPathFinder {
-    public override List<LinkedList<int>> GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database, long startTime) {
+    public override List<LinkedList<int>> GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database) {
         if (wordIndex1 == wordIndex2) {
             List<LinkedList<int>> path = new List<LinkedList<int>>();
             LinkedList<int> pathList = new LinkedList<int>();
@@ -13,8 +13,6 @@ public class FinderSingleSided : LevenshteinPathFinder {
             if (PRINT_EXTRA) {
                 Console.WriteLine("Outer: " + g.OuterCount);
                 Console.WriteLine("Searched: " + g.SearchedCount);
-                Console.WriteLine("Total Searched: " + (g.OuterCount + g.SearchedCount));
-                Console.WriteLine("Current Time: " + (DateTime.Now.Nanosecond - startTime) / 1000000 + "\n");
             }
 
             if (!generateNewOuterSucceeded) {
