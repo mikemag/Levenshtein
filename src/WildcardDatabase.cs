@@ -3,11 +3,11 @@ using System.Text;
 public class WildcardDatabase : LevenshteinDatabase {
     protected readonly Dictionary<String, List<int>> _wildcardMap;
 
-    public WildcardDatabase(String dictionaryPath) : base(dictionaryPath) {
+    public WildcardDatabase(FileInfo dictionarySource) : base(dictionarySource) {
         _wildcardMap = GetInitializedWildcardMap();
     }
 
-    protected WildcardDatabase(String dictionaryPath, bool initializeWildcardMap) : base(dictionaryPath) {
+    protected WildcardDatabase(FileInfo dictionarySource, bool initializeWildcardMap) : base(dictionarySource) {
         if (initializeWildcardMap) {
             _wildcardMap = GetInitializedWildcardMap();
         } else {

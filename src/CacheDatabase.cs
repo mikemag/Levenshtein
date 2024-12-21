@@ -3,12 +3,14 @@ using System.Text;
 public class CacheDatabase : WildcardDatabase {
     private readonly int[][] _neighborArray;
 
-    public CacheDatabase(String dictionaryPath) : base(dictionaryPath) {
+    public CacheDatabase(FileInfo dictionarySource) : base(dictionarySource) {
         _neighborArray = GetInitializedNeighborArray();
     }
 
-    public CacheDatabase(String dictionaryPath, String wildcardMapPath) : base (dictionaryPath, false) {
-        FillWildcardMap(wildcardMapPath);
+    public CacheDatabase(FileInfo dictionarySource, FileInfo wildcardMapPath) : base(dictionarySource, wildcardMapPath == null) {
+        if (wildcardMapPath != null) {
+            FillWildcardMap(wildcardMapPath);
+        }
 
         _neighborArray = GetInitializedNeighborArray();
     }
@@ -27,9 +29,9 @@ public class CacheDatabase : WildcardDatabase {
         return FindNeighbors(wordIndex2).Contains(wordIndex1);
     }
 
-    private void FillWildcardMap(String inputFile) {
+    private void FillWildcardMap(FileInfo inputFile) {
         /*StreamReader input = new StreamReader(inputFile);*/
-        String[] lines = File.ReadAllLines(inputFile);
+        String[] lines = File.ReadAllLines(inputFile.FullName);
 
         foreach (String lineString in lines) {
             String[] line = lineString.Split(" "); 
@@ -67,7 +69,7 @@ public class CacheDatabase : WildcardDatabase {
         return initialArray;
     }
 
-    public void WildcardMapToFile(String inputPath) {
-        File.WriteAllText(inputPath, this.WildcardMapToString());
+    public void WildcardMapToFile(FileInfo inputPath) {
+        File.WriteAllText(inputPath.FullName, this.WildcardMapToString());
     }
 }

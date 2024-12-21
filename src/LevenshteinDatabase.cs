@@ -18,8 +18,8 @@ public abstract class LevenshteinDatabase {
         public int this[String key] { get => Array.BinarySearch(_words, key, COMPARE_WORDS); }
     }
 
-    protected LevenshteinDatabase(String dictionarySourcePath) {
-        Words = MakeDictionary(dictionarySourcePath);
+    protected LevenshteinDatabase(FileInfo dictionarySource) {
+        Words = MakeDictionary(dictionarySource);
         Indexes = new WordIndices(Words);
     }
 
@@ -27,8 +27,8 @@ public abstract class LevenshteinDatabase {
      * Reads a file at the specified location and returns a word
      * list generated reading the file. 
      */
-    public static String[] MakeDictionary(String sourcepath) {
-        return File.ReadAllLines(sourcepath);
+    public static String[] MakeDictionary(FileInfo source) {
+        return File.ReadAllLines(source.FullName);
     }
 
     /**

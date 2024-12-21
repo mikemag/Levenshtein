@@ -1,7 +1,7 @@
 public class LazyDatabase : LevenshteinDatabase {
     private readonly Dictionary<int, int> _lengthStartIndexes;
 
-    public LazyDatabase(String dictionaryPath) : base(dictionaryPath) {
+    public LazyDatabase(FileInfo dictionarySource) : base(dictionarySource) {
         _lengthStartIndexes = new Dictionary<int, int>();
         for (int i = 0; i < this.Words.Length; i++) {
             _lengthStartIndexes.TryAdd(this.Words[i].Length, i);
