@@ -79,7 +79,7 @@ public class WildcardDatabase : LevenshteinDatabase {
 
         foreach (String wildcard in this.LocalWildcardIdentities(wordIndex)) {
             foreach (int neighborIndex in _wildcardMap[wildcard]) {
-                if (neighborIndex != wordIndex) {
+                if (neighborIndex != wordIndex && !returnList.Contains(neighborIndex)) {
                     returnList.Add(neighborIndex);
                 }
             }
