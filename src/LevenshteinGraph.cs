@@ -1,4 +1,5 @@
 public class LevenshteinGraph {
+    public int Depth { get; private set; }
     public int OuterCount { get => outer.Count; }
     public int SearchedCount { get => searched.Count; }
 
@@ -18,6 +19,7 @@ public class LevenshteinGraph {
         searched = new Dictionary<int, List<int>>();
         outer = new Dictionary<int, List<int>>();
         outer.Add(root, new List<int>());
+        Depth = 1;
     }
     
     /**
@@ -62,6 +64,7 @@ public class LevenshteinGraph {
         }
 
         outer = newOuter;
+        Depth++;
         return true;
     }
 
