@@ -171,7 +171,7 @@ public class Levenshtein {
             return;
         };
 
-        List<LinkedList<int>> paths = finder.GeneratePaths(wordIndex1, wordIndex2, database);
+        List<int[]> paths = finder.GeneratePaths(wordIndex1, wordIndex2, database);
 
         if (paths == null) {
             Console.WriteLine("No path exists between '" + word1 + "' and '" + word2 + "'\n");

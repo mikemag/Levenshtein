@@ -49,13 +49,14 @@ public class LevenshteinGraph {
                     continue;
                 }
 
-                if (newOuter.ContainsKey(neighbor)) {
-                    newOuter[neighbor].Add(outerWord);
-                } else {
+                if (!newOuter.ContainsKey(neighbor)) {
                     List<int> listToAdd = new List<int>();
                     listToAdd.Add(outerWord);
                     newOuter.Add(neighbor, listToAdd);
+                    continue;
                 }
+
+                newOuter[neighbor].Add(outerWord);
             }
         }
         
@@ -77,34 +78,41 @@ public class LevenshteinGraph {
      * calling the helper method with these copies, returning once the path has
      * reached the its destination word.
      */
-    public List<LinkedList<int>> AllPathsBetween(int wordIndex1, int wordIndex2, bool reversed) {
-        LinkedList<int> previous = new LinkedList<int>();
-        previous.AddFirst(wordIndex2);
-        List<LinkedList<int>> toReturn = new List<LinkedList<int>>();
+    public List<int[]> AllPathsBetween(int wordIndex1, int wordIndex2, bool reversed) {
+        List<int[]> toReturn = new List<int[]>();
+        int[] previous = new int[Depth];
 
         if (wordIndex1 == wordIndex2) {
+            previous[0] = wordIndex1;
             toReturn.Add(previous);
-        } else if (reversed) {
-            AllPathsBetween(toReturn, previous, wordIndex1, outer[wordIndex2], (i, p) => p.AddLast(i));
+            return toReturn;
+        }
+
+        if (reversed) {
+            previous[0] = wordIndex2;
+            AllPathsBetween(toReturn, previous, wordIndex1, outer[wordIndex2], 0, 1);
         } else {
-            AllPathsBetween(toReturn, previous, wordIndex1, outer[wordIndex2], (i, p) => p.AddFirst(i));
+            previous[Depth - 1] = wordIndex2;
+            AllPathsBetween(toReturn, previous, wordIndex1, outer[wordIndex2], Depth - 1, -1);
         }
 
         return toReturn;
     }
 
-    private void AllPathsBetween(List<LinkedList<int>> paths, LinkedList<int> currentPath, int root, List<int> setToSearch, Action<int, LinkedList<int>> pathAdder) {
+    private void AllPathsBetween(List<int[]> paths, int[] currentPath, int root, List<int> setToSearch, int index, int indexIncrement) {
+        index += indexIncrement;
+
         if (setToSearch.Contains(root)) {
-            pathAdder(root, currentPath);
+            currentPath[index] = root;
             paths.Add(currentPath);
             return;
         }
 
         foreach (int wordIndex in setToSearch) {
-            LinkedList<int> newPrevious = new LinkedList<int>(currentPath);
-
-            pathAdder(wordIndex, newPrevious);
-            AllPathsBetween(paths, newPrevious, root, searched[wordIndex], pathAdder);
+            int[] newPrevious = new int[currentPath.Length];
+            currentPath.CopyTo(newPrevious, 0);
+            newPrevious[index] = wordIndex;
+            AllPathsBetween(paths, newPrevious, root, searched[wordIndex], index, indexIncrement);
         }
     }
 

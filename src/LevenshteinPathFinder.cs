@@ -12,13 +12,13 @@ public abstract class LevenshteinPathFinder {
      * convert to a different format, or use pathsToString if the goal is simply to
      * print it.
      */
-    public abstract List<LinkedList<int>> GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database);
+    public abstract List<int[]> GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database);
 
     /**
      * Converts paths to a String representation, where each path is on its own line and a change is denoted by [word1]-> [word2]
      * For example, the paths between "dog" and "cat" would be:
      */
-    public static String PathsToString(List<LinkedList<int>> paths, LevenshteinDatabase database, bool showNumber, bool showDistance) {
+    public static String PathsToString(List<int[]> paths, LevenshteinDatabase database, bool showNumber, bool showDistance) {
         if (paths == null) {
             return "";
         }
@@ -28,23 +28,21 @@ public abstract class LevenshteinPathFinder {
 
         paths.Sort(LevenshteinPathFinder.PATH_COMPARATOR);
 
-        foreach (LinkedList<int> path in paths) {
+        foreach (int[] path in paths) {
             if (showNumber) {
                 pathsBuilder.Append(++pathNumber + ". ");
             }
 
-            IEnumerator<int> pathIter = path.GetEnumerator();
-            pathIter.MoveNext();
-            pathsBuilder.Append(database.Words[pathIter.Current]);
+            pathsBuilder.Append(database.Words[path[0]]);
 
-            while (pathIter.MoveNext()) {
-                pathsBuilder.Append("-> " + database.Words[pathIter.Current]);
+            for (int i = 1; i < path.Length; i++) {
+                pathsBuilder.Append("-> " + database.Words[path[i]]);
             }
             pathsBuilder.Append("\n");
         }
 
         if (showDistance) {
-            int distance = paths.ElementAt(0).Count - 1;
+            int distance = paths.ElementAt(0).Count() - 1;
             pathsBuilder.Append("Distance: " + distance);
         }
 
@@ -57,17 +55,18 @@ public abstract class LevenshteinPathFinder {
      *
      * This is intended for converting the list returned by generatePaths to a consistent order.
      */
-    public static readonly Comparer<LinkedList<int>> PATH_COMPARATOR = Comparer<LinkedList<int>>.Create((o1, o2) => {
-        IEnumerator<int> i1 = o1.GetEnumerator();
-        IEnumerator<int> i2 = o2.GetEnumerator();
-        while (i1.MoveNext()) {
-            if (!i2.MoveNext()) {
-                return 1;
+    public static readonly Comparer<int[]> PATH_COMPARATOR = Comparer<int[]>.Create((array1, array2) => {
+        int end = int.Min(array1.Count(), array2.Count());
+        for (int i = 0; i < end; i++) {
+            int comparison = array1[i].CompareTo(array2[i]);
+            if (comparison != 0) {
+                return comparison;
             }
-            int c = i1.Current.CompareTo(i2.Current);
-            if (c != 0) {
-                return c;
-            }
+        };
+        if (array1.Count() < array2.Count()) {
+            return 1;
+        } else if (array2.Count() < array1.Count()) {
+            return -1;
         }
         return 0;
     });

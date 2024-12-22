@@ -1,11 +1,10 @@
 public class FinderSingleSided : LevenshteinPathFinder {
-    public override List<LinkedList<int>> GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database) {
+    public override List<int[]> GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database) {
         if (wordIndex1 == wordIndex2) {
-            List<LinkedList<int>> path = new List<LinkedList<int>>();
-            LinkedList<int> pathList = new LinkedList<int>();
-            pathList.AddFirst(wordIndex1);
-            path.Add(new LinkedList<int>(pathList));
-            return path;
+            List<int[]> paths = new List<int[]>();
+            int[] path = { wordIndex1 };
+            paths.Add(path);
+            return paths;
         }
         LevenshteinGraph g = new LevenshteinGraph(wordIndex1);
         while (true) {
