@@ -24,8 +24,11 @@ public class Levenshtein {
     ];
 
     private static readonly String[][] _benchmarkWords = [
+        ["dog", "dot"],
+        ["dog", "dog"],
         ["dog", "cat"],
         ["dog", "quack"],
+        ["vulgates", "gumwood"],
         ["monkey", "business"]
     ];
 
