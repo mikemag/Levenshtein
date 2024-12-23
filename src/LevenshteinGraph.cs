@@ -1,3 +1,5 @@
+using System.Text;
+
 public class LevenshteinGraph {
     public int Depth { get; private set; }
     public int OuterCount { get => outer.Count; }
@@ -143,7 +145,39 @@ public class LevenshteinGraph {
         return intersection;
     }
 
-    public override String ToString() {
-        return "Outer: \n" + outer + "\nSearched: \n" + searched;
+    public String OuterPathString(LevenshteinDatabase database) {
+        StringBuilder pathBuilder = new StringBuilder();
+
+        Dictionary<int, List<int>>.Enumerator outerNumerator = outer.GetEnumerator();
+        while (outerNumerator.MoveNext()) {
+            pathBuilder.Append("\n" + database.Words[outerNumerator.Current.Key]);
+
+            if (outerNumerator.Current.Value.Count <= 1) {
+                AppendPathStrings(database, outerNumerator.Current.Value, pathBuilder);
+                continue;
+            }
+
+            pathBuilder.Append(" {");
+            AppendPathStrings(database, outerNumerator.Current.Value, pathBuilder);
+            pathBuilder.Append(" }");
+        }
+
+        return pathBuilder.ToString();
+    }
+
+    private void AppendPathStrings(LevenshteinDatabase database, List<int> words, StringBuilder pathBuilder) {
+        foreach (int word in words) {
+            List<int> previous = searched[word];
+            pathBuilder.Append(" " + database.Words[word]);
+
+            if (previous.Count <= 1) {
+                AppendPathStrings(database, previous, pathBuilder);
+                continue;
+            }
+
+            pathBuilder.Append(" {");
+            AppendPathStrings(database, previous, pathBuilder);
+            pathBuilder.Append(" }");
+        }
     }
 }

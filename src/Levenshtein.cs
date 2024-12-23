@@ -48,11 +48,15 @@ public class Levenshtein {
                 { dictionaryArg, databaseArg, finderArg, wildcardMapOpt };
         benchmarkVerb.SetHandler(Levenshtein.RunBenchmark, dictionaryArg, databaseArg, finderArg, wildcardMapOpt);
 
+        Command analyzeVerb = new Command("analyze", "Analyze all paths between each pair of words in the entire dictionary")
+                { dictionaryArg, databaseArg, wildcardMapOpt };
+        analyzeVerb.SetHandler(Levenshtein.RunAnalyze, dictionaryArg, databaseArg, wildcardMapOpt);
+
         Argument<String> wordArg1 = new Argument<String>(name: "start", description: "Start word");
         Argument<String> wordArg2 = new Argument<String>(name: "end", description: "Destination word");
         Command pathVerb = new Command("path", "Find the path between a pair of words") 
-                { dictionaryArg, databaseArg, finderArg, wordArg1, wordArg2, wildcardMapOpt };
-        pathVerb.SetHandler(Levenshtein.RunPath, dictionaryArg, databaseArg, finderArg, wordArg1, wordArg2, wildcardMapOpt);
+                { dictionaryArg, wordArg1, wordArg2, databaseArg, finderArg, wildcardMapOpt };
+        pathVerb.SetHandler(Levenshtein.RunPath, dictionaryArg, wordArg1, wordArg2, databaseArg, finderArg, wildcardMapOpt);
 
         Argument<FileInfo> wildcardDestinationArg = new Argument<FileInfo>(name: "destination", description: "File to cache map to");
         Command cacheVerb = new Command("cache", "Cache the wildcard map to a file")
@@ -60,12 +64,12 @@ public class Levenshtein {
         cacheVerb.SetHandler(Levenshtein.RunCache, dictionaryArg, wildcardDestinationArg);
 
         RootCommand rootCommand = new RootCommand("CLI for the Levenshtein graph problem. See https://github.com/TristenYim/Levenshtein")
-            { testVerb, benchmarkVerb, pathVerb, cacheVerb };
+            { testVerb, benchmarkVerb, pathVerb, analyzeVerb, cacheVerb };
 
         return rootCommand.Invoke(args);
     }
 
-    private static void RunPath(FileInfo dictionaryPath, DatabaseType databaseType, FinderAlgorithm finderAlgorithm, String word1, String word2, FileInfo wildcardPath) {
+    private static void RunPath(FileInfo dictionaryPath, String word1, String word2, DatabaseType databaseType, FinderAlgorithm finderAlgorithm, FileInfo wildcardPath) {
         LevenshteinDatabase database = GetDatabase(dictionaryPath, databaseType, wildcardPath);
         LevenshteinPathFinder finder = GetFinder(finderAlgorithm);
 
@@ -118,6 +122,20 @@ public class Levenshtein {
             }
             Console.WriteLine("Average time is " + (((Stopwatch.GetTimestamp() - time2) / ticksPerMus) / reps) + " microseconds\n");
         }
+    }
+
+    private static void RunAnalyze(FileInfo dictionaryPath, DatabaseType databaseType, FileInfo wildcardPath) {
+        long time0 = Stopwatch.GetTimestamp();
+        long ticksPerMs = Stopwatch.Frequency / 1000;
+
+        LevenshteinDatabase database = GetDatabase(dictionaryPath, databaseType, wildcardPath);
+
+        long time1 = Stopwatch.GetTimestamp();
+        Console.WriteLine("Initialized in " + (time1 - time0) / ticksPerMs + " milliseconds\n");
+
+        MetaAnalyzer.Analyze(database);
+
+        Console.WriteLine("Done! Time to complete was " + (Stopwatch.GetTimestamp() - time1) / ticksPerMs + " milliseconds");
     }
 
     private static void RunCache(FileInfo dictionaryPath, FileInfo wildcardMapDestination) {
