@@ -4,7 +4,8 @@ public class LevenshteinGraph {
     public int Depth { get; private set; }
     public int OuterCount { get => outer.Count; }
     public int SearchedCount { get => searched.Count; }
-
+    public Dictionary<int, List<int>>.KeyCollection OuterKeys { get => outer.Keys; }
+    
     private Dictionary<int, List<int>> outer;
 
     /**
@@ -12,7 +13,7 @@ public class LevenshteinGraph {
      * breadth-first search and ensuring each word is contained in only one
      * layer.
      */
-    private Dictionary<int, List<int>> searched;
+    private readonly Dictionary<int, List<int>> searched;
 
     /**
      * Initializes the graph, with searched being completely empty and outer only containing the root word with no previous.
