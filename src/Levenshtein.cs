@@ -46,13 +46,14 @@ public class Levenshtein {
                 { dictionaryArg, databaseArg, finderArg, wildcardMapOpt };
         testVerb.SetHandler(Levenshtein.RunTest, dictionaryArg, databaseArg, finderArg, wildcardMapOpt);
 
-        Command benchmarkVerb = new Command("benchmark", "Benchmark the performance of a database finder pair") 
-                { dictionaryArg, databaseArg, finderArg, wildcardMapOpt };
-        benchmarkVerb.SetHandler(Levenshtein.RunBenchmark, dictionaryArg, databaseArg, finderArg, wildcardMapOpt);
-
         Command analyzeVerb = new Command("analyze", "Analyze all paths between each pair of words in the entire dictionary")
                 { dictionaryArg, databaseArg, wildcardMapOpt };
         analyzeVerb.SetHandler(Levenshtein.RunAnalyze, dictionaryArg, databaseArg, wildcardMapOpt);
+
+        Option<uint> repsOpt = new Option<uint>(name: "--reps", description: "How many times to repeat each word pair search. Higher gives more accurate data but takes longer", getDefaultValue: () => 100000);
+        Command benchmarkVerb = new Command("benchmark", "Benchmark the performance of a database finder pair") 
+                { dictionaryArg, databaseArg, finderArg, wildcardMapOpt, repsOpt };
+        benchmarkVerb.SetHandler(Levenshtein.RunBenchmark, dictionaryArg, databaseArg, finderArg, wildcardMapOpt, repsOpt);
 
         Argument<String> wordArg1 = new Argument<String>(name: "start", description: "Start word");
         Argument<String> wordArg2 = new Argument<String>(name: "end", description: "Destination word");
@@ -95,7 +96,7 @@ public class Levenshtein {
         Console.WriteLine("Total time (excluding init) is " + (Stopwatch.GetTimestamp() - time1) / ticksPerMs + " milliseconds");
     }
 
-    private static void RunBenchmark(FileInfo dictionaryPath, DatabaseType databaseType, FinderAlgorithm finderAlgorithm, FileInfo wildcardPath) {
+    private static void RunBenchmark(FileInfo dictionaryPath, DatabaseType databaseType, FinderAlgorithm finderAlgorithm, FileInfo wildcardPath, uint reps) {
         long time0 = Stopwatch.GetTimestamp();
         long ticksPerMus = Stopwatch.Frequency / 1000000;
 
@@ -117,7 +118,15 @@ public class Levenshtein {
 
             long time2 = Stopwatch.GetTimestamp();
 
-            const int reps = 100000;
+            if (wordPair[0] == "headwards") {
+                // headwards to rifflers takes too long to benchmark with the same number
+                // of reps as the other words
+                reps /= 1000;
+            }
+
+            if (reps == 0) {
+                reps = 1;
+            }
 
             for (int i = 0; i < reps; i++) {
                 LevenshteinPathFinder.PathsToString(finder.GeneratePaths(wordIndex1, wordIndex2, database), database, false, false);
