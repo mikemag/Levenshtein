@@ -25,7 +25,3 @@ This dictionary should be nothing more than a simple word list. Each line must c
 #### &nbsp;&nbsp;Consider the efficiency of *every stage* of each solutions
 
 Every stage after the sorting and reading of the dictionaries must be considered. For example, if a solution involves caching pre-computed data (such as by writing a map of words to neighbors to memory or a file), consider not just the time it takes to find a Levenshtein path but also the time it takes to generate this data. In other words, if an algorithm can find a path quickly after an 8-hour setup, is this actually that efficient?
-
-#### &nbsp;&nbsp;Do not bother with multithreading
-
-This is beyond the scope of this project.
