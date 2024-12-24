@@ -29,7 +29,9 @@ public class Levenshtein {
         ["dog", "cat"],
         ["dog", "quack"],
         ["vulgates", "gumwood"],
-        ["monkey", "business"]
+        ["monkey", "business"],
+        ["underpitch", "toppingly"], // This is one of the four longest word pairs Dictionary370k
+        ["headwards", "rifflers"] // This is the word pair with the most paths in Dictionary370k
     ];
 
     // Run with --help flag to view command structure
