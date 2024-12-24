@@ -150,34 +150,58 @@ public class LevenshteinGraph {
 
         Dictionary<int, List<int>>.Enumerator outerNumerator = outer.GetEnumerator();
         while (outerNumerator.MoveNext()) {
-            pathBuilder.Append("\n" + database.Words[outerNumerator.Current.Key]);
+            AppendPathStrings(outerNumerator.Current.Key, outerNumerator.Current.Value, database, pathBuilder);
 
-            if (outerNumerator.Current.Value.Count <= 1) {
-                AppendPathStrings(database, outerNumerator.Current.Value, pathBuilder);
-                continue;
-            }
-
-            pathBuilder.Append(" {");
-            AppendPathStrings(database, outerNumerator.Current.Value, pathBuilder);
-            pathBuilder.Append(" }");
+            pathBuilder.Append("\n");
         }
 
         return pathBuilder.ToString();
     }
 
-    private void AppendPathStrings(LevenshteinDatabase database, List<int> words, StringBuilder pathBuilder) {
-        foreach (int word in words) {
-            List<int> previous = searched[word];
-            pathBuilder.Append(" " + database.Words[word]);
+    private void AppendPathStrings(int currentWord, List<int> previous, LevenshteinDatabase database, StringBuilder pathBuilder) {
+        pathBuilder.Append(" " + database.Words[currentWord]);
 
-            if (previous.Count <= 1) {
-                AppendPathStrings(database, previous, pathBuilder);
-                continue;
+        if (previous.Count <= 1) {
+            foreach (int word in previous) {
+                AppendPathStrings(word, searched[word], database, pathBuilder);
             }
+            return;
+        }
 
-            pathBuilder.Append(" {");
-            AppendPathStrings(database, previous, pathBuilder);
-            pathBuilder.Append(" }");
+        pathBuilder.Append(" {");
+        foreach(int word in previous) {
+            AppendPathStrings(word, searched[word], database, pathBuilder);
+        }
+        pathBuilder.Append(" }");
+    }
+
+    public void WritePathStreams(int databaseWordCount, List<MemoryStream> streamList) {
+        Dictionary<int, List<int>>.Enumerator outerNumerator = outer.GetEnumerator();
+        while (outerNumerator.MoveNext()) {
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+                WritePathStreams(outerNumerator.Current.Key, outerNumerator.Current.Value, databaseWordCount, writer);
+
+                writer.Write(databaseWordCount);
+            streamList.Add(stream);
         }
     }
+
+    private void WritePathStreams(int currentWord, List<int> previousWords, int databaseWordCount, BinaryWriter writer) {
+        writer.Write(currentWord); // This is a line delimiter
+
+        if (previousWords.Count <= 1) {
+            foreach (int previousWord in previousWords) {
+                WritePathStreams(previousWord, searched[previousWord], databaseWordCount, writer);
+            }
+            return;
+        }
+
+        writer.Write(databaseWordCount + 1); // This marks an open bracket
+        foreach (int previousWord in previousWords) {
+            WritePathStreams(previousWord, searched[previousWord], databaseWordCount, writer);
+        }
+        writer.Write(databaseWordCount + 2); // This marks a closed bracket
+    }
+
 }
