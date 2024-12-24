@@ -204,4 +204,12 @@ public class LevenshteinGraph {
         writer.Write(databaseWordCount + 2); // This marks a closed bracket
     }
 
+    public void WriteOuterBinary(int databaseWordCount, BinaryWriter writer) {
+        writer.Write(databaseWordCount);
+        writer.Write(databaseWordCount + Depth);
+
+        foreach(int key in outer.Keys) {
+            writer.Write(key);
+        }
+    }
 }

@@ -1,14 +1,29 @@
 public class MetaAnalyzer {
     public static void Analyze(LevenshteinDatabase database) {
         const int count = 1;
-        List<String> paths = new List<String>();
+        FileStream output = new FileStream("/home/fathom/temp2.txt", FileMode.Create);
+        GraphToBinary(count, 1, 0, database, output);
 
-        for (int i = 0; i < count; i++) {
-            AppendPathsFrom(i, database, paths);
+    }
+
+    private static void GraphToBinary(int max, int partitions, int offset, LevenshteinDatabase database, FileStream output) {
+        MemoryStream graphStream = new MemoryStream();
+        BinaryWriter writer = new BinaryWriter(graphStream);
+
+        for (int i = offset; i < max; i += partitions) {
+            LevenshteinGraph graph = new LevenshteinGraph(i);
+
+            while (graph.GenerateNewOuter(database)) {
+                graph.WriteOuterBinary(database.Words.Count(), writer);
+            }
+        }
+        writer.Close();
+
+        output.Write(graphStream.ToArray());
+        graphStream.Dispose();
+        writer.Dispose();
         }
 
-        foreach (String path in paths) {
-            Console.WriteLine(path);
         }
     }
 
