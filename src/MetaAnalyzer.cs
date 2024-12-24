@@ -27,11 +27,57 @@ public class MetaAnalyzer {
         }
     }
 
-    public static void AppendPathsFrom(int wordIndex, LevenshteinDatabase database, List<String> paths) {
-        LevenshteinGraph graph = new LevenshteinGraph(wordIndex);
+    private static void MakeGraphDiagnostics(int root, LevenshteinDatabase database, List<PathDiagnostics> maxLengths, List<PathDiagnostics> maxPaths) {
+        Dictionary<int, List<int[]>> pathDictionary = new Dictionary<int, List<int[]>>();
+        LevenshteinGraph graph = new LevenshteinGraph(root);
+
+        bool generateFirstOuterSucceeded = graph.GenerateNewOuter(database);
+
+        foreach (int key in graph.OuterKeys) {
+            pathDictionary.Add(key, graph.AllPathsBetween(root, key, false));
+        }
+
+        if (!generateFirstOuterSucceeded) {
+            return;
+        }
 
         while (graph.GenerateNewOuter(database)) {
-            paths.Add(graph.OuterPathString(database));
+            foreach(int outerWord in graph.OuterKeys) {
+                int numPaths = graph.NumberOfPathsFrom(outerWord);
+                if (numPaths >= maxPaths[0].count) {
+                    if (numPaths > maxPaths[0].count) {
+                        maxPaths.Clear();
+                    };
+                    maxPaths.Add(new PathDiagnostics(graph.Depth, numPaths, root, outerWord));
+                }
+            }
+        }
+
+        if (graph.Depth - 1 >= maxLengths[0].length) {
+            if (graph.Depth - 1 > maxLengths[0].length) {
+                maxLengths.Clear();
+            }
+            foreach (int furthestWord in graph.OuterKeys) {
+                maxLengths.Add(new PathDiagnostics(graph.Depth - 1, graph.NumberOfPathsFrom(furthestWord), root, furthestWord));
+            }
+        }
+    }
+
+    public struct PathDiagnostics {
+        public int length;
+        public int count;
+        public int word1;
+        public int word2;
+
+        public PathDiagnostics(int length, int count, int word1, int word2) {
+            this.length = length;
+            this.count = count;
+            this.word1 = word1;
+            this.word2 = word2;
+        }
+
+        public override String ToString() {
+            return "Length: " + length + "\nCount: " + count + "\nWord1: " + word1 + "\nWord2: " + word2;
         }
     }
 }
