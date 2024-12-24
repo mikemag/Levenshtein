@@ -119,6 +119,25 @@ public class LevenshteinGraph {
         }
     }
 
+    public int NumberOfPathsFrom(int outerWordIndex) {
+        int paths = 0;
+        foreach (int outerPrevious in outer[outerWordIndex]) {
+            paths += RecursiveNumberOfPathsFrom(outerPrevious);
+        }
+        return paths;
+    }
+
+    private int RecursiveNumberOfPathsFrom(int searchedWordIndex) {
+        if (searched.ContainsKey(searchedWordIndex) == null || searched[searchedWordIndex].Count() == 0) {
+            return 1;
+        }
+        int paths = 0;
+        foreach (int previous in searched[searchedWordIndex]) {
+            paths += RecursiveNumberOfPathsFrom(previous); 
+        }
+        return paths;
+    }
+
     /**
      * Checks if the outer of this graph contains wordIndex.
      */
