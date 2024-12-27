@@ -12,13 +12,13 @@ public abstract class LevenshteinPathFinder {
      * convert to a different format, or use pathsToString if the goal is simply to
      * print it.
      */
-    public abstract List<int[]> GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database);
+    public abstract List<int[]>? GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database);
 
     /**
      * Converts paths to a String representation, where each path is on its own line and a change is denoted by [word1]-> [word2]
      * For example, the paths between "dog" and "cat" would be:
      */
-    public static String PathsToString(List<int[]> paths, LevenshteinDatabase database, bool showNumber, bool showDistance) {
+    public static String PathsToString(List<int[]>? paths, LevenshteinDatabase database, bool showNumber, bool showDistance) {
         if (paths == null) {
             return "";
         }

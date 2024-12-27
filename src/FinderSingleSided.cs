@@ -1,5 +1,5 @@
 public class FinderSingleSided : LevenshteinPathFinder {
-    public override List<int[]> GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database) {
+    public override List<int[]>? GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database) {
         if (wordIndex1 == wordIndex2) {
             List<int[]> paths = new List<int[]>();
             int[] path = { wordIndex1 };
@@ -9,10 +9,13 @@ public class FinderSingleSided : LevenshteinPathFinder {
         LevenshteinGraph g = new LevenshteinGraph(wordIndex1);
         while (true) {
             bool generateNewOuterSucceeded = g.GenerateNewOuter(database);
+ 
+#pragma warning disable CS0162
             if (PRINT_EXTRA) {
                 Console.WriteLine("Outer: " + g.OuterCount);
                 Console.WriteLine("Searched: " + g.SearchedCount);
             }
+#pragma warning restore CS0162
 
             if (!generateNewOuterSucceeded) {
                 return null;

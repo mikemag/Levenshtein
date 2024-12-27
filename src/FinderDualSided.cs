@@ -1,5 +1,5 @@
 public class FinderDualSided : LevenshteinPathFinder {
-    public override List<int[]> GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database) {
+    public override List<int[]>? GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database) {
         if (wordIndex1 == wordIndex2) {
             List<int[]> paths = new List<int[]>();
             int[] path = { wordIndex1 };
@@ -25,12 +25,14 @@ public class FinderDualSided : LevenshteinPathFinder {
                 return null;
             } 
 
+#pragma warning disable CS0162
             if (PRINT_EXTRA) {
                 Console.WriteLine("Start Outer: " + graph1OSize);
                 Console.WriteLine("Target Outer: " + graph2OSize);
                 Console.WriteLine("Start Searched: " + graph1.SearchedCount);
                 Console.WriteLine("Target Searched: " + graph2.SearchedCount);
             }
+#pragma warning restore CS0162
 
             List<int> outerIntersection = LevenshteinGraph.OuterIntersection(graph1, graph2);
 

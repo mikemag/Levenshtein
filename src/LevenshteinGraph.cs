@@ -128,7 +128,7 @@ public class LevenshteinGraph {
     }
 
     private int RecursiveNumberOfPathsFrom(int searchedWordIndex) {
-        if (searched.ContainsKey(searchedWordIndex) == null || searched[searchedWordIndex].Count() == 0) {
+        if (searched[searchedWordIndex].Count() == 0) {
             return 1;
         }
         int paths = 0;
