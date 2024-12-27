@@ -1,6 +1,7 @@
 using System.Text;
 
-public abstract class LevenshteinPathFinder {
+public abstract class LevenshteinPathFinder
+{
     /** Set to true to display extra text for debugging. */
     protected const bool PRINT_EXTRA = false;
 
@@ -18,8 +19,11 @@ public abstract class LevenshteinPathFinder {
      * Converts paths to a String representation, where each path is on its own line and a change is denoted by [word1]-> [word2]
      * For example, the paths between "dog" and "cat" would be:
      */
-    public static String PathsToString(List<int[]>? paths, LevenshteinDatabase database, bool showNumber, bool showDistance) {
-        if (paths == null) {
+    public static String PathsToString(List<int[]>? paths, LevenshteinDatabase database, bool showNumber,
+        bool showDistance)
+    {
+        if (paths == null)
+        {
             return "";
         }
 
@@ -28,20 +32,25 @@ public abstract class LevenshteinPathFinder {
 
         paths.Sort(LevenshteinPathFinder.PATH_COMPARATOR);
 
-        foreach (int[] path in paths) {
-            if (showNumber) {
+        foreach (int[] path in paths)
+        {
+            if (showNumber)
+            {
                 pathsBuilder.Append(++pathNumber + ". ");
             }
 
             pathsBuilder.Append(database.Words[path[0]]);
 
-            for (int i = 1; i < path.Length; i++) {
+            for (int i = 1; i < path.Length; i++)
+            {
                 pathsBuilder.Append("-> " + database.Words[path[i]]);
             }
+
             pathsBuilder.Append("\n");
         }
 
-        if (showDistance) {
+        if (showDistance)
+        {
             int distance = paths.ElementAt(0).Count() - 1;
             pathsBuilder.Append("Distance: " + distance);
         }
@@ -55,19 +64,28 @@ public abstract class LevenshteinPathFinder {
      *
      * This is intended for converting the list returned by generatePaths to a consistent order.
      */
-    public static readonly Comparer<int[]> PATH_COMPARATOR = Comparer<int[]>.Create((array1, array2) => {
+    public static readonly Comparer<int[]> PATH_COMPARATOR = Comparer<int[]>.Create((array1, array2) =>
+    {
         int end = int.Min(array1.Count(), array2.Count());
-        for (int i = 0; i < end; i++) {
+        for (int i = 0; i < end; i++)
+        {
             int comparison = array1[i].CompareTo(array2[i]);
-            if (comparison != 0) {
+            if (comparison != 0)
+            {
                 return comparison;
             }
-        };
-        if (array1.Count() < array2.Count()) {
+        }
+
+        ;
+        if (array1.Count() < array2.Count())
+        {
             return 1;
-        } else if (array2.Count() < array1.Count()) {
+        }
+        else if (array2.Count() < array1.Count())
+        {
             return -1;
         }
+
         return 0;
     });
 }

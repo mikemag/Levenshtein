@@ -1,50 +1,63 @@
 using System.Text;
 
-public class CacheDatabase : WildcardDatabase {
+public class CacheDatabase : WildcardDatabase
+{
     private readonly int[][] _neighborArray;
 
-    public CacheDatabase(FileInfo dictionarySource) : base(dictionarySource) {
+    public CacheDatabase(FileInfo dictionarySource) : base(dictionarySource)
+    {
         _neighborArray = GetInitializedNeighborArray();
     }
 
-    public CacheDatabase(FileInfo dictionarySource, FileInfo wildcardMapPath) : base(dictionarySource, wildcardMapPath == null) {
-        if (wildcardMapPath != null) {
+    public CacheDatabase(FileInfo dictionarySource, FileInfo wildcardMapPath) : base(dictionarySource,
+        wildcardMapPath == null)
+    {
+        if (wildcardMapPath != null)
+        {
             FillWildcardMap(wildcardMapPath);
         }
 
         _neighborArray = GetInitializedNeighborArray();
     }
 
-    public override int[] FindNeighbors(int wordIndex) { 
+    public override int[] FindNeighbors(int wordIndex)
+    {
         return _neighborArray[wordIndex];
     }
 
-    public override bool AreNeighbors(int wordIndex1, int wordIndex2) {
+    public override bool AreNeighbors(int wordIndex1, int wordIndex2)
+    {
         int[] word1Neighbors = FindNeighbors(wordIndex1);
         int[] word2Neighbors = FindNeighbors(wordIndex2);
 
-        if (word1Neighbors.Length <= word2Neighbors.Length) {
+        if (word1Neighbors.Length <= word2Neighbors.Length)
+        {
             return FindNeighbors(wordIndex1).Contains(wordIndex2);
         }
+
         return FindNeighbors(wordIndex2).Contains(wordIndex1);
     }
 
-    private void FillWildcardMap(FileInfo inputFile) {
+    private void FillWildcardMap(FileInfo inputFile)
+    {
         /*StreamReader input = new StreamReader(inputFile);*/
         String[] lines = File.ReadAllLines(inputFile.FullName);
 
-        foreach (String lineString in lines) {
-            String[] line = lineString.Split(" "); 
+        foreach (String lineString in lines)
+        {
+            String[] line = lineString.Split(" ");
             String key = line[0];
             List<int> value = new List<int>();
             int wildcardIndex = WildcardDatabase.GetWildcardIndex(key);
 
             StringBuilder valueBuilder = new StringBuilder(key);
 
-            for (int i = 1; i < line.Length; i++) {
+            for (int i = 1; i < line.Length; i++)
+            {
                 char valueCharacter = line[i].ElementAt(0);
 
-                if (valueCharacter == '0') {
+                if (valueCharacter == '0')
+                {
                     valueBuilder.Remove(wildcardIndex, 1);
                     value.Add(this.Indexes[valueBuilder.ToString()]);
                     valueBuilder.Insert(wildcardIndex, "0");
@@ -59,17 +72,20 @@ public class CacheDatabase : WildcardDatabase {
         }
     }
 
-    private int[][] GetInitializedNeighborArray() {
+    private int[][] GetInitializedNeighborArray()
+    {
         int[][] initialArray = new int[this.Words.Length][];
 
-        for (int i = 0; i < this.Words.Length; i++) {
+        for (int i = 0; i < this.Words.Length; i++)
+        {
             initialArray[i] = base.FindNeighbors(i);
         }
 
         return initialArray;
     }
 
-    public void WildcardMapToFile(FileInfo inputPath) {
+    public void WildcardMapToFile(FileInfo inputPath)
+    {
         File.WriteAllText(inputPath.FullName, this.WildcardMapToString());
     }
 }
