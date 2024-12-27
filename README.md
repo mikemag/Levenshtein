@@ -1,3 +1,6 @@
+This is Tristen's Levenshtein project. I've forked it so I can add a series of commits illustrating various possibilities.
+I'll show some correctness, quality, and performance improvements over a series of hopefully small commits.
+
 # Levenshtein
 
 ## Overview
