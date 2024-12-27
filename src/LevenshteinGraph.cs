@@ -19,7 +19,7 @@ public class LevenshteinGraph
         get => outer.Keys;
     }
 
-    private Dictionary<int, List<int>> outer;
+    public Dictionary<int, List<int>> outer;
 
     /**
      * Searched is used both for reconstructing paths after finishing the
@@ -147,33 +147,6 @@ public class LevenshteinGraph
             newPrevious[index] = wordIndex;
             AllPathsBetween(paths, newPrevious, root, searched[wordIndex], index, indexIncrement);
         }
-    }
-
-    public int NumberOfPathsFrom(int outerWordIndex)
-    {
-        int paths = 0;
-        foreach (int outerPrevious in outer[outerWordIndex])
-        {
-            paths += RecursiveNumberOfPathsFrom(outerPrevious);
-        }
-
-        return paths;
-    }
-
-    private int RecursiveNumberOfPathsFrom(int searchedWordIndex)
-    {
-        if (searched[searchedWordIndex].Count() == 0)
-        {
-            return 1;
-        }
-
-        int paths = 0;
-        foreach (int previous in searched[searchedWordIndex])
-        {
-            paths += RecursiveNumberOfPathsFrom(previous);
-        }
-
-        return paths;
     }
 
     /**

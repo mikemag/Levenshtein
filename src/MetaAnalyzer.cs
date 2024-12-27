@@ -135,26 +135,21 @@ public class MetaAnalyzer
     private static void MakeGraphDiagnostics(int root, LevenshteinDatabase database, List<PathDiagnostics> maxLengths,
         List<PathDiagnostics> maxPaths)
     {
-        Dictionary<int, List<int[]>> pathDictionary = new Dictionary<int, List<int[]>>();
         LevenshteinGraph graph = new LevenshteinGraph(root);
-
-        bool generateFirstOuterSucceeded = graph.GenerateNewOuter(database);
-
-        foreach (int key in graph.OuterKeys)
-        {
-            pathDictionary.Add(key, graph.AllPathsBetween(root, key, false));
-        }
-
-        if (!generateFirstOuterSucceeded)
-        {
-            return;
-        }
+        var pathCounts = new Dictionary<int, int>() { { root, 1 } };
 
         while (graph.GenerateNewOuter(database))
         {
-            foreach (int outerWord in graph.OuterKeys)
+            foreach (var outerEntry in graph.outer)
             {
-                int numPaths = graph.NumberOfPathsFrom(outerWord);
+                int numPaths = 0;
+                foreach (var p in outerEntry.Value)
+                {
+                    numPaths += pathCounts[p];
+                }
+
+                pathCounts[outerEntry.Key] = numPaths;
+
                 if (numPaths >= maxPaths[0].count)
                 {
                     if (numPaths > maxPaths[0].count)
@@ -162,8 +157,7 @@ public class MetaAnalyzer
                         maxPaths.Clear();
                     }
 
-                    ;
-                    maxPaths.Add(new PathDiagnostics(graph.Depth, numPaths, root, outerWord));
+                    maxPaths.Add(new PathDiagnostics(graph.Depth, numPaths, root, outerEntry.Key));
                 }
             }
         }
@@ -177,7 +171,7 @@ public class MetaAnalyzer
 
             foreach (int furthestWord in graph.OuterKeys)
             {
-                maxLengths.Add(new PathDiagnostics(graph.Depth - 1, graph.NumberOfPathsFrom(furthestWord), root,
+                maxLengths.Add(new PathDiagnostics(graph.Depth - 1, pathCounts[furthestWord], root,
                     furthestWord));
             }
         }
