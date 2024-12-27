@@ -136,7 +136,7 @@ public class MetaAnalyzer
         List<PathDiagnostics> maxPaths)
     {
         LevenshteinGraph graph = new LevenshteinGraph(root);
-        var pathCounts = new Dictionary<int, int>() { { root, 1 } };
+        var pathCounts = new Dictionary<int, int>(300000) { { root, 1 } };
 
         while (graph.GenerateNewOuter(database))
         {
