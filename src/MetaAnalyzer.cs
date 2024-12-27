@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 public class MetaAnalyzer {
     public static void Analyze(LevenshteinDatabase database) {
         const int count = 1;
@@ -5,8 +7,10 @@ public class MetaAnalyzer {
         const int threads = 16;
         int partitionSize = database.Words.Count() / partitionsPerThread / threads;
 
-        for (int t = 0; t < threads; t++) {
-            Thread thread = new Thread(() => ThreadGraphDiagnosis(threads, t, partitionsPerThread, partitionSize, database));
+        for (int t = 0; t < threads; t++)
+        {
+            int tt = t;
+            Thread thread = new Thread(() => ThreadGraphDiagnosis(threads, tt, partitionsPerThread, partitionSize, database));
             thread.Start();
         }
 
@@ -70,12 +74,25 @@ public class MetaAnalyzer {
         maxLengths.Add(new PathDiagnostics(0, 0, 0, 0));
         maxPaths.Add(new PathDiagnostics(0, 0, 0, 0));
 
+        long ticksPerMs = Stopwatch.Frequency / 1000;
+
         for (int i = 0; i < partitions; i++) {
+            long time0 = Stopwatch.GetTimestamp();
             for (int j = thread + i * threads; j < size * partitions * threads; j += partitions * threads) {
                 /*Console.WriteLine(j);*/
                 MakeGraphDiagnostics(j, database, maxLengths, maxPaths);
             }
-            Console.WriteLine("Done with partition (" + thread + "): " + (i + 1) + " out of " + partitions);
+            long time1 = Stopwatch.GetTimestamp();
+            Console.WriteLine($"Done with partition ({thread}): {i + 1} out of {partitions} in {(time1 - time0) / ticksPerMs}ms");
+            if (thread == 0)
+            {
+                foreach (PathDiagnostics path in maxLengths) {
+                    Console.WriteLine(path.ToString());
+                }
+                foreach (PathDiagnostics path in maxPaths) {
+                    Console.WriteLine(path.ToString());
+                }
+            }
         }
 
         foreach (PathDiagnostics path in maxLengths) {
