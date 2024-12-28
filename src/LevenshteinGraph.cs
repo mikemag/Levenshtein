@@ -27,6 +27,20 @@ public class LevenshteinGraph
         Depth = 1;
     }
 
+    public LevenshteinGraph()
+    {
+        _searched = new Dictionary<int, List<int>>(50000);
+        Outer = new Dictionary<int, List<int>>();
+        Depth = 1;
+    }
+
+    public void Reset(int root)
+    {
+        _searched.Clear();
+        Outer = new Dictionary<int, List<int>> { { root, [] } };
+        Depth = 1;
+    }
+
     /**
      * This method puts every word in outer into searched and replaces outer with a new outer containing the neighbors of the previous outer.
      * NOTE: A neighbor already in the graph is not added. Any path which arrives at a word later than another path will not be a levenshtein.

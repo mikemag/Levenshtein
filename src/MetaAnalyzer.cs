@@ -112,6 +112,7 @@ public static class MetaAnalyzer
         threadMaxLengths[threadId] = maxLengths;
         threadMaxPaths[threadId] = maxPaths;
         var pathCounts = new Dictionary<int, int>(300000);
+        LevenshteinGraph graph = new LevenshteinGraph();
 
         const int partitions = 100;
         var totalWords = database.Words.Length;
@@ -121,7 +122,7 @@ public static class MetaAnalyzer
             var time0 = Stopwatch.GetTimestamp();
             for (var j = threadId + i * threadCount; j < totalWords; j += partitions * threadCount)
             {
-                MakeGraphDiagnostics(j, database, maxLengths, maxPaths, pathCounts);
+                MakeGraphDiagnostics(j, database, maxLengths, maxPaths, pathCounts, graph);
             }
 
             var time1 = Stopwatch.GetTimestamp();
@@ -132,9 +133,9 @@ public static class MetaAnalyzer
     }
 
     private static void MakeGraphDiagnostics(int root, LevenshteinDatabase database, List<PathDiagnostics> maxLengths,
-        List<PathDiagnostics> maxPaths, Dictionary<int, int> pathCounts)
+        List<PathDiagnostics> maxPaths, Dictionary<int, int> pathCounts, LevenshteinGraph graph)
     {
-        LevenshteinGraph graph = new LevenshteinGraph(root);
+        graph.Reset(root);
         pathCounts[root] = 1; // Sufficient "reset" of pathCounts ;)
 
         while (graph.GenerateNewOuter(database))
