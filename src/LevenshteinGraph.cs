@@ -79,7 +79,7 @@ public class LevenshteinGraph
 
                 if (!_otherOuter.TryGetValue(neighbor, out var value))
                 {
-                    var listToAdd = new List<int> { outerWord };
+                    var listToAdd = new List<int>(16) { outerWord };
                     _otherOuter.Add(neighbor, listToAdd);
                     continue;
                 }
