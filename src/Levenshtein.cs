@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
-using System.CommandLine;
+﻿using System.CommandLine;
+using System.Diagnostics;
+
+namespace levenshtein;
 
 public class Levenshtein
 {

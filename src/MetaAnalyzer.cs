@@ -1,43 +1,61 @@
 using System.Diagnostics;
-using levenshtein;
 
-public class MetaAnalyzer
+namespace levenshtein;
+
+public static class MetaAnalyzer
 {
     public static void Analyze(LevenshteinDatabase database)
     {
-        const int partitionsPerThread = 100;
-        const int threads = 16;
-        int partitionSize = database.Words.Count() / partitionsPerThread / threads;
+        const int threadCount = 16;
+        var threads = new Thread[threadCount];
+        var maxLengths = new List<PathDiagnostics>[threadCount];
+        var maxPaths = new List<PathDiagnostics>[threadCount];
 
-        for (int t = 0; t < threads; t++)
+        for (var t = 0; t < threadCount; t++)
         {
-            int tt = t;
-            Thread thread = new Thread(() =>
-                ThreadGraphDiagnosis(threads, tt, partitionsPerThread, partitionSize, database));
-            thread.Start();
+            var tt = t; // Closure capture
+            threads[t] = new Thread(() => ThreadGraphDiagnosis(threadCount, tt, maxLengths, maxPaths, database));
+            threads[t].Start();
         }
 
-        List<PathDiagnostics> maxLengths = new List<PathDiagnostics>();
-        List<PathDiagnostics> maxPaths = new List<PathDiagnostics>();
-        maxLengths.Add(new PathDiagnostics(0, 0, 0, 0));
-        maxPaths.Add(new PathDiagnostics(0, 0, 0, 0));
+        var finalMaxLengths = new List<PathDiagnostics> { new(0, 0, 0, 0) };
+        var finalMaxPaths = new List<PathDiagnostics> { new(0, 0, 0, 0) };
 
-        for (int i = threads * partitionsPerThread * partitionSize; i < database.Words.Count(); i++)
+        for (var t = 0; t < threadCount; t++)
         {
-            MakeGraphDiagnostics(i, database, maxLengths, maxPaths);
+            threads[t].Join();
+
+            if (maxPaths[t][0].Count >= finalMaxPaths[0].Count)
+            {
+                if (maxPaths[t][0].Count > finalMaxPaths[0].Count)
+                {
+                    finalMaxPaths.Clear();
+                }
+
+                finalMaxPaths.AddRange(maxPaths[t]);
+            }
+
+            if (maxLengths[t][0].Length >= finalMaxLengths[0].Length)
+            {
+                if (maxLengths[t][0].Length > finalMaxLengths[0].Length)
+                {
+                    finalMaxLengths.Clear();
+                }
+
+                finalMaxLengths.AddRange(maxLengths[t]);
+            }
         }
 
-        ThreadPool.SetMinThreads(0, 1);
-        ThreadPool.SetMaxThreads(threads, 1);
-
-        foreach (PathDiagnostics path in maxLengths)
+        Console.WriteLine("Max lengths:");
+        foreach (var path in finalMaxLengths)
         {
-            Console.WriteLine("(excess): " + path.ToString());
+            Console.WriteLine(path.ToString(database));
         }
 
-        foreach (PathDiagnostics path in maxPaths)
+        Console.WriteLine("Max paths:");
+        foreach (var path in finalMaxPaths)
         {
-            Console.WriteLine("(excess): " + path.ToString());
+            Console.WriteLine(path.ToString(database));
         }
     }
 
@@ -86,50 +104,29 @@ public class MetaAnalyzer
         }
     }
 
-    private static void ThreadGraphDiagnosis(int threads, int thread, int partitions, int size,
-        LevenshteinDatabase database)
+    private static void ThreadGraphDiagnosis(int threadCount, int threadId, List<PathDiagnostics>[] threadMaxLengths,
+        List<PathDiagnostics>[] threadMaxPaths, LevenshteinDatabase database)
     {
-        List<PathDiagnostics> maxLengths = new List<PathDiagnostics>();
-        List<PathDiagnostics> maxPaths = new List<PathDiagnostics>();
-        maxLengths.Add(new PathDiagnostics(0, 0, 0, 0));
-        maxPaths.Add(new PathDiagnostics(0, 0, 0, 0));
+        var maxLengths = new List<PathDiagnostics> { new(0, 0, 0, 0) };
+        var maxPaths = new List<PathDiagnostics> { new(0, 0, 0, 0) };
+        threadMaxLengths[threadId] = maxLengths;
+        threadMaxPaths[threadId] = maxPaths;
 
-        long ticksPerMs = Stopwatch.Frequency / 1000;
-
-        for (int i = 0; i < partitions; i++)
+        const int partitions = 100;
+        var totalWords = database.Words.Length;
+        var ticksPerMs = Stopwatch.Frequency / 1000;
+        for (var i = 0; i < partitions; i++)
         {
-            long time0 = Stopwatch.GetTimestamp();
-            for (int j = thread + i * threads; j < size * partitions * threads; j += partitions * threads)
+            var time0 = Stopwatch.GetTimestamp();
+            for (var j = threadId + i * threadCount; j < totalWords; j += partitions * threadCount)
             {
-                /*Console.WriteLine(j);*/
                 MakeGraphDiagnostics(j, database, maxLengths, maxPaths);
             }
 
-            long time1 = Stopwatch.GetTimestamp();
+            var time1 = Stopwatch.GetTimestamp();
             Console.WriteLine(
-                $"Done with partition ({thread}): {i + 1} out of {partitions} in {(time1 - time0) / ticksPerMs}ms");
-            if (thread == 0)
-            {
-                foreach (PathDiagnostics path in maxLengths)
-                {
-                    Console.WriteLine(path.ToString());
-                }
-
-                foreach (PathDiagnostics path in maxPaths)
-                {
-                    Console.WriteLine(path.ToString());
-                }
-            }
-        }
-
-        foreach (PathDiagnostics path in maxLengths)
-        {
-            Console.WriteLine(path.ToString());
-        }
-
-        foreach (PathDiagnostics path in maxPaths)
-        {
-            Console.WriteLine(path.ToString());
+                $"Done with partition ({threadId}): {i + 1} out of {partitions} in {(time1 - time0) / ticksPerMs}ms");
+            // if (i == 1) break; // mmmfixme: tmp testing
         }
     }
 
@@ -143,7 +140,7 @@ public class MetaAnalyzer
         {
             foreach (var outerEntry in graph.Outer)
             {
-                int numPaths = 0;
+                var numPaths = 0;
                 foreach (var p in outerEntry.Value)
                 {
                     numPaths += pathCounts[p];
@@ -151,9 +148,9 @@ public class MetaAnalyzer
 
                 pathCounts[outerEntry.Key] = numPaths;
 
-                if (numPaths >= maxPaths[0].count)
+                if (numPaths >= maxPaths[0].Count)
                 {
-                    if (numPaths > maxPaths[0].count)
+                    if (numPaths > maxPaths[0].Count)
                     {
                         maxPaths.Clear();
                     }
@@ -163,39 +160,34 @@ public class MetaAnalyzer
             }
         }
 
-        if (graph.Depth - 1 >= maxLengths[0].length)
+        if (graph.Depth - 1 >= maxLengths[0].Length)
         {
-            if (graph.Depth - 1 > maxLengths[0].length)
+            if (graph.Depth - 1 > maxLengths[0].Length)
             {
                 maxLengths.Clear();
             }
 
-            foreach (int furthestWord in graph.OuterKeys)
+            foreach (var furthestWord in graph.OuterKeys)
             {
-                maxLengths.Add(new PathDiagnostics(graph.Depth - 1, pathCounts[furthestWord], root,
-                    furthestWord));
+                maxLengths.Add(new PathDiagnostics(graph.Depth - 1, pathCounts[furthestWord], root, furthestWord));
             }
         }
     }
 
-    public struct PathDiagnostics
+    private readonly struct PathDiagnostics(int length, int count, int word1, int word2)
     {
-        public int length;
-        public int count;
-        public int word1;
-        public int word2;
+        public readonly int Length = length;
+        public readonly int Count = count;
 
-        public PathDiagnostics(int length, int count, int word1, int word2)
+        public override string ToString()
         {
-            this.length = length;
-            this.count = count;
-            this.word1 = word1;
-            this.word2 = word2;
+            // return "Length: " + length + "\nCount: " + count + "\nWord1: " + word1 + "\nWord2: " + word2;
+            return $"{Length}, {Count}, {word1}, {word2}";
         }
 
-        public override String ToString()
+        public string ToString(LevenshteinDatabase database)
         {
-            return "Length: " + length + "\nCount: " + count + "\nWord1: " + word1 + "\nWord2: " + word2;
+            return $"Length={Length}, paths={Count}, {database.Words[word1]} --> {database.Words[word2]}";
         }
     }
 }
