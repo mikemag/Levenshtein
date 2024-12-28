@@ -33,7 +33,7 @@ public class LevenshteinGraph
      */
     public LevenshteinGraph(int root)
     {
-        searched = new Dictionary<int, List<int>>();
+        searched = new Dictionary<int, List<int>>(50000);
         outer = new Dictionary<int, List<int>>();
         outer.Add(root, new List<int>());
         Depth = 1;
@@ -51,7 +51,7 @@ public class LevenshteinGraph
      */
     public bool GenerateNewOuter(LevenshteinDatabase database)
     {
-        Dictionary<int, List<int>> newOuter = new Dictionary<int, List<int>>();
+        Dictionary<int, List<int>> newOuter = new Dictionary<int, List<int>>(256);
 
         /*searched = searched.Concat(outer).ToDictionary(pair => pair.Key, pair => pair.Value);*/
         // The foreach loop is faster than Concat, which is extremely disappointing.
@@ -71,15 +71,14 @@ public class LevenshteinGraph
                     continue;
                 }
 
-                if (!newOuter.ContainsKey(neighbor))
+                if (!newOuter.TryGetValue(neighbor, out var value))
                 {
-                    List<int> listToAdd = new List<int>();
-                    listToAdd.Add(outerWord);
+                    var listToAdd = new List<int> { outerWord };
                     newOuter.Add(neighbor, listToAdd);
                     continue;
                 }
 
-                newOuter[neighbor].Add(outerWord);
+                value.Add(outerWord);
             }
         }
 
