@@ -9,6 +9,7 @@ public class LevenshteinGraph
     public int SearchedCount => _searched.Count;
     public Dictionary<int, List<int>>.KeyCollection OuterKeys => Outer.Keys;
     public Dictionary<int, List<int>> Outer;
+    private Dictionary<int, List<int>> _otherOuter;
 
     /**
      * Searched is used both for reconstructing paths after finishing the
@@ -24,6 +25,7 @@ public class LevenshteinGraph
     {
         _searched = new Dictionary<int, List<int>>(50000);
         Outer = new Dictionary<int, List<int>> { { root, [] } };
+        _otherOuter = new Dictionary<int, List<int>>();
         Depth = 1;
     }
 
@@ -31,13 +33,15 @@ public class LevenshteinGraph
     {
         _searched = new Dictionary<int, List<int>>(50000);
         Outer = new Dictionary<int, List<int>>();
+        _otherOuter = new Dictionary<int, List<int>>();
         Depth = 1;
     }
 
     public void Reset(int root)
     {
         _searched.Clear();
-        Outer = new Dictionary<int, List<int>> { { root, [] } };
+        Outer.Clear();
+        Outer[root] = [];
         Depth = 1;
     }
 
@@ -53,7 +57,7 @@ public class LevenshteinGraph
      */
     public bool GenerateNewOuter(LevenshteinDatabase database)
     {
-        var newOuter = new Dictionary<int, List<int>>(256);
+        _otherOuter.Clear();
 
         /*searched = searched.Concat(outer).ToDictionary(pair => pair.Key, pair => pair.Value);*/
         // The foreach loop is faster than Concat, which is extremely disappointing.
@@ -73,10 +77,10 @@ public class LevenshteinGraph
                     continue;
                 }
 
-                if (!newOuter.TryGetValue(neighbor, out var value))
+                if (!_otherOuter.TryGetValue(neighbor, out var value))
                 {
                     var listToAdd = new List<int> { outerWord };
-                    newOuter.Add(neighbor, listToAdd);
+                    _otherOuter.Add(neighbor, listToAdd);
                     continue;
                 }
 
@@ -84,12 +88,12 @@ public class LevenshteinGraph
             }
         }
 
-        if (newOuter.Count == 0)
+        if (_otherOuter.Count == 0)
         {
             return false;
         }
 
-        Outer = newOuter;
+        (Outer, _otherOuter) = (_otherOuter, Outer);
         Depth++;
         return true;
     }
