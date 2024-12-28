@@ -1,41 +1,29 @@
 using System.Text;
 
+namespace levenshtein;
+
 public class LevenshteinGraph
 {
     public int Depth { get; private set; }
-
-    public int OuterCount
-    {
-        get => outer.Count;
-    }
-
-    public int SearchedCount
-    {
-        get => searched.Count;
-    }
-
-    public Dictionary<int, List<int>>.KeyCollection OuterKeys
-    {
-        get => outer.Keys;
-    }
-
-    public Dictionary<int, List<int>> outer;
+    public int OuterCount => Outer.Count;
+    public int SearchedCount => _searched.Count;
+    public Dictionary<int, List<int>>.KeyCollection OuterKeys => Outer.Keys;
+    public Dictionary<int, List<int>> Outer;
 
     /**
      * Searched is used both for reconstructing paths after finishing the
      * breadth-first search and ensuring each word is contained in only one
      * layer.
      */
-    private readonly Dictionary<int, List<int>> searched;
+    private readonly Dictionary<int, List<int>> _searched;
 
     /**
      * Initializes the graph, with searched being completely empty and outer only containing the root word with no previous.
      */
     public LevenshteinGraph(int root)
     {
-        searched = new Dictionary<int, List<int>>(50000);
-        outer = new Dictionary<int, List<int>>();
-        outer.Add(root, new List<int>());
+        _searched = new Dictionary<int, List<int>>(50000);
+        Outer = new Dictionary<int, List<int>> { { root, [] } };
         Depth = 1;
     }
 
@@ -51,22 +39,22 @@ public class LevenshteinGraph
      */
     public bool GenerateNewOuter(LevenshteinDatabase database)
     {
-        Dictionary<int, List<int>> newOuter = new Dictionary<int, List<int>>(256);
+        var newOuter = new Dictionary<int, List<int>>(256);
 
         /*searched = searched.Concat(outer).ToDictionary(pair => pair.Key, pair => pair.Value);*/
         // The foreach loop is faster than Concat, which is extremely disappointing.
-        foreach (KeyValuePair<int, List<int>> entry in outer)
+        foreach (var (key, value) in Outer)
         {
-            searched.Add(entry.Key, entry.Value);
+            _searched.Add(key, value);
         }
 
-        foreach (int outerWord in outer.Keys)
+        foreach (var outerWord in Outer.Keys)
         {
-            int[] neighbors = database.FindNeighbors(outerWord);
+            var neighbors = database.FindNeighbors(outerWord);
 
-            foreach (int neighbor in neighbors)
+            foreach (var neighbor in neighbors)
             {
-                if (searched.ContainsKey(neighbor))
+                if (_searched.ContainsKey(neighbor))
                 {
                     continue;
                 }
@@ -87,7 +75,7 @@ public class LevenshteinGraph
             return false;
         }
 
-        outer = newOuter;
+        Outer = newOuter;
         Depth++;
         return true;
     }
@@ -103,8 +91,8 @@ public class LevenshteinGraph
      */
     public List<int[]> AllPathsBetween(int wordIndex1, int wordIndex2, bool reversed)
     {
-        List<int[]> toReturn = new List<int[]>();
-        int[] previous = new int[Depth];
+        List<int[]> toReturn = [];
+        var previous = new int[Depth];
 
         if (wordIndex1 == wordIndex2)
         {
@@ -116,12 +104,12 @@ public class LevenshteinGraph
         if (reversed)
         {
             previous[0] = wordIndex2;
-            AllPathsBetween(toReturn, previous, wordIndex1, outer[wordIndex2], 0, 1);
+            AllPathsBetween(toReturn, previous, wordIndex1, Outer[wordIndex2], 0, 1);
         }
         else
         {
             previous[Depth - 1] = wordIndex2;
-            AllPathsBetween(toReturn, previous, wordIndex1, outer[wordIndex2], Depth - 1, -1);
+            AllPathsBetween(toReturn, previous, wordIndex1, Outer[wordIndex2], Depth - 1, -1);
         }
 
         return toReturn;
@@ -139,12 +127,12 @@ public class LevenshteinGraph
             return;
         }
 
-        foreach (int wordIndex in setToSearch)
+        foreach (var wordIndex in setToSearch)
         {
-            int[] newPrevious = new int[currentPath.Length];
+            var newPrevious = new int[currentPath.Length];
             currentPath.CopyTo(newPrevious, 0);
             newPrevious[index] = wordIndex;
-            AllPathsBetween(paths, newPrevious, root, searched[wordIndex], index, indexIncrement);
+            AllPathsBetween(paths, newPrevious, root, _searched[wordIndex], index, indexIncrement);
         }
     }
 
@@ -153,23 +141,21 @@ public class LevenshteinGraph
      */
     public bool OuterContains(int wordIndex)
     {
-        return outer.ContainsKey(wordIndex);
+        return Outer.ContainsKey(wordIndex);
     }
 
     public static List<int> OuterIntersection(LevenshteinGraph graph1, LevenshteinGraph graph2)
     {
-        List<int> intersection = new List<int>();
-        Dictionary<int, List<int>> outerCopy = graph1.outer;
-        Dictionary<int, List<int>> otherOuter = graph2.outer;
+        List<int> intersection = [];
+        var outerCopy = graph1.Outer;
+        var otherOuter = graph2.Outer;
 
         if (outerCopy.Keys.Count > otherOuter.Keys.Count)
         {
-            Dictionary<int, List<int>> temp = otherOuter;
-            otherOuter = outerCopy;
-            outerCopy = temp;
+            (otherOuter, outerCopy) = (outerCopy, otherOuter);
         }
 
-        foreach (int wordIndex in outerCopy.Keys)
+        foreach (var wordIndex in outerCopy.Keys)
         {
             if (otherOuter.ContainsKey(wordIndex))
             {
@@ -180,16 +166,16 @@ public class LevenshteinGraph
         return intersection;
     }
 
-    public String OuterPathString(LevenshteinDatabase database)
+    public string OuterPathString(LevenshteinDatabase database)
     {
-        StringBuilder pathBuilder = new StringBuilder();
+        var pathBuilder = new StringBuilder();
 
-        Dictionary<int, List<int>>.Enumerator outerNumerator = outer.GetEnumerator();
+        var outerNumerator = Outer.GetEnumerator();
         while (outerNumerator.MoveNext())
         {
             AppendPathStrings(outerNumerator.Current.Key, outerNumerator.Current.Value, database, pathBuilder);
 
-            pathBuilder.Append("\n");
+            pathBuilder.Append('\n');
         }
 
         return pathBuilder.ToString();
@@ -202,18 +188,18 @@ public class LevenshteinGraph
 
         if (previous.Count <= 1)
         {
-            foreach (int word in previous)
+            foreach (var word in previous)
             {
-                AppendPathStrings(word, searched[word], database, pathBuilder);
+                AppendPathStrings(word, _searched[word], database, pathBuilder);
             }
 
             return;
         }
 
         pathBuilder.Append(" {");
-        foreach (int word in previous)
+        foreach (var word in previous)
         {
-            AppendPathStrings(word, searched[word], database, pathBuilder);
+            AppendPathStrings(word, _searched[word], database, pathBuilder);
         }
 
         pathBuilder.Append(" }");
@@ -221,11 +207,11 @@ public class LevenshteinGraph
 
     public void WritePathStreams(int databaseWordCount, List<MemoryStream> streamList)
     {
-        Dictionary<int, List<int>>.Enumerator outerNumerator = outer.GetEnumerator();
+        var outerNumerator = Outer.GetEnumerator();
         while (outerNumerator.MoveNext())
         {
-            MemoryStream stream = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(stream);
+            var stream = new MemoryStream();
+            var writer = new BinaryWriter(stream);
             WritePathStreams(outerNumerator.Current.Key, outerNumerator.Current.Value, databaseWordCount, writer);
 
             writer.Write(databaseWordCount);
@@ -239,18 +225,18 @@ public class LevenshteinGraph
 
         if (previousWords.Count <= 1)
         {
-            foreach (int previousWord in previousWords)
+            foreach (var previousWord in previousWords)
             {
-                WritePathStreams(previousWord, searched[previousWord], databaseWordCount, writer);
+                WritePathStreams(previousWord, _searched[previousWord], databaseWordCount, writer);
             }
 
             return;
         }
 
         writer.Write(databaseWordCount + 1); // This marks an open bracket
-        foreach (int previousWord in previousWords)
+        foreach (var previousWord in previousWords)
         {
-            WritePathStreams(previousWord, searched[previousWord], databaseWordCount, writer);
+            WritePathStreams(previousWord, _searched[previousWord], databaseWordCount, writer);
         }
 
         writer.Write(databaseWordCount + 2); // This marks a closed bracket
@@ -261,7 +247,7 @@ public class LevenshteinGraph
         writer.Write(databaseWordCount);
         writer.Write(databaseWordCount + Depth);
 
-        foreach (int key in outer.Keys)
+        foreach (var key in Outer.Keys)
         {
             writer.Write(key);
         }

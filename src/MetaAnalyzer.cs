@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using levenshtein;
 
 public class MetaAnalyzer
 {
@@ -140,7 +141,7 @@ public class MetaAnalyzer
 
         while (graph.GenerateNewOuter(database))
         {
-            foreach (var outerEntry in graph.outer)
+            foreach (var outerEntry in graph.Outer)
             {
                 int numPaths = 0;
                 foreach (var p in outerEntry.Value)

@@ -1,3 +1,5 @@
+using levenshtein;
+
 public class FinderDualSided : LevenshteinPathFinder
 {
     public override List<int[]>? GeneratePaths(int wordIndex1, int wordIndex2, LevenshteinDatabase database)
