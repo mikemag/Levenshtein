@@ -15,6 +15,59 @@ These were largely identified by the IDE's (Rider) builtin analysis. This wasn a
 2. Algorithmic improvement: counting the paths back to the root word was quite slow, and the change here resulted in the 2nd largest single improvement of ~34%.
 3. Memory: reusing memory yielded the rest of the results, along with the biggest single improvement of ~44%.
 
+All three runs with current mods, 16 threads:
+
+```
+Max lengths:
+Length=27, paths=5, thorough --> reality
+Length=27, paths=5, thoughts --> reality
+Length=27, paths=5, reality --> thoughts
+Length=27, paths=5, reality --> thorough
+Max paths:
+Length=16, paths=1200, amounts --> hostels
+Length=16, paths=1200, hostels --> amounts
+Done! Time to complete was 721 milliseconds
+
+
+Max lengths:
+Length=34, paths=28, angling --> perforation
+Length=34, paths=21, whirling --> perforation
+Length=34, paths=21, perforation --> whirling
+Length=34, paths=28, perforation --> angling
+Length=34, paths=28, perforation --> gangling
+Length=34, paths=28, gangling --> perforation
+Max paths:
+Length=15, paths=2307, sparling --> feathery
+Length=15, paths=2307, feathery --> sparling
+Length=16, paths=2307, feathery --> sparkling
+Length=16, paths=2307, sparkling --> feathery
+Done! Time to complete was 17590 milliseconds
+
+
+Max lengths:
+Length=55, paths=4, underditch --> toppingly
+Length=55, paths=8, underditch --> nudifier
+Length=55, paths=4, underpitch --> toppingly
+Length=55, paths=8, underpitch --> nudifier
+Length=55, paths=4, toppingly --> underditch
+Length=55, paths=4, toppingly --> underpitch
+Length=55, paths=8, nudifier --> underditch
+Length=55, paths=8, nudifier --> underpitch
+Max paths:
+Length=32, paths=68244, rifflers --> headwards
+Length=32, paths=68244, headwards --> rifflers
+Done! Time to complete was 1613522 milliseconds <-- 26.89 min
+```
+
+All three runs with current mods, 8 threads:
+
+```
+Done! Time to complete was 696 milliseconds
+Done! Time to complete was 16091 milliseconds
+Done! Time to complete was 1383316 milliseconds <-- 23.06 min
+```
+
+
 ## Next steps
 
 This program uses a very large amount of memory, and as originally written it churns through it very quickly. This results in a lot of allocation, and 
