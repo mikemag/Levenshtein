@@ -6,7 +6,8 @@ public class MetaAnalyzer {
         int partitionSize = database.Words.Count() / partitionsPerThread / threads;
 
         for (int t = 0; t < threads; t++) {
-            Thread thread = new Thread(() => ThreadGraphDiagnosis(threads, t, partitionsPerThread, partitionSize, database));
+            int threadId = t;
+            Thread thread = new Thread(() => ThreadGraphDiagnosis(threads, threadId, partitionsPerThread, partitionSize, database));
             thread.Start();
         }
 
