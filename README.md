@@ -1,6 +1,41 @@
 This is Tristen's Levenshtein project. I've forked it so I can add a series of commits illustrating various possibilities.
 I'll show some correctness, quality, and performance improvements over a series of hopefully small commits.
 
+## Current progress
+
+I chose to focus on the time taken for the 2nd partition on the 0th thread for the 370k dictionary. Why? Well, I had instrumented the 0th thread 
+for some extra telemetry, and I just kinda stuck with the 2nd iteration. Everything is well warmed up at that point, so it seemed reasonable.
+
+At this point we have ~78.4% improvement, going from an initial time of 46426ms to 10046ms.
+
+If you look through the diffs, they fell into only a few categories:
+
+1. Removed superfluous code: some write-only code, and some always false checks involving hasing into the core data structures.
+These were largely identified by the IDE's (Rider) builtin analysis. This wasn an initial ~7% improvement.
+2. Algorithmic improvement: counting the paths back to the root word was quite slow, and the change here resulted in the 2nd largest single improvement of ~34%.
+3. Memory: reusing memory yielded the rest of the results, along with the biggest single improvement of ~44%.
+
+## Next steps
+
+This program uses a very large amount of memory, and as originally written it churns through it very quickly. This results in a lot of allocation, and 
+a lot of GC time. Reusing memory whenever you can in cases like this is usually a big win, and that's been the case here. 
+
+The next big step wrt memory is to look at the parent lists in the graph. These are all small List<int>, and there's a ton of them.
+Pooling these could help. A histogram of sizes would be a big help in deciding what approach to take. I suspect most of these are a
+single element long. It's possible that folding the smallest sizes into the dict entry could be a nice win. Pre-sizing these to 16 helped
+massively, but they're still the largest source of churn in the heap.
+
+## A word on optimization
+
+It's important to revisit optimizations as your program changes to see if they're still a win or not. You might reject an idea because
+it is a small loss, even when you thought it was good, but then find with other optimizations you get the win you expect. Or you might
+find something was a win at one point, but with other changes it's a decent loss now. Tuning of things like dictionary and list sizes
+should be revisited often because they're so easy to tweak.
+
+In short, never assume a win last week is a win today.
+
+### Original README.md follows
+
 # Levenshtein
 
 ## Overview
