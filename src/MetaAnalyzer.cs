@@ -30,41 +30,6 @@ public class MetaAnalyzer {
         }
     }
 
-    private static void GraphToBinary(int max, int partitions, int offset, LevenshteinDatabase database, FileStream output) {
-        MemoryStream graphStream = new MemoryStream();
-        BinaryWriter writer = new BinaryWriter(graphStream);
-
-        for (int i = offset; i < max; i += partitions) {
-            LevenshteinGraph graph = new LevenshteinGraph(i);
-
-            while (graph.GenerateNewOuter(database)) {
-                graph.WriteOuterBinary(database.Words.Count(), writer);
-            }
-        }
-        writer.Close();
-
-        output.Write(graphStream.ToArray());
-        graphStream.Dispose();
-        writer.Dispose();
-    }
-
-    private static void AddPathsForPartition(int max, int partitions, int offset, LevenshteinDatabase database, FileStream output) {
-        List<MemoryStream> paths = new List<MemoryStream>();
-
-        for (int i = offset; i < max; i += partitions) {
-            LevenshteinGraph graph = new LevenshteinGraph(i);
-
-            while (graph.GenerateNewOuter(database)) {
-                graph.WritePathStreams(database.Words.Count(), paths);
-            }
-        }
-
-        foreach (MemoryStream stream in paths) {
-            output.Write(stream.ToArray());
-            stream.Dispose();
-        }
-    }
-
     private static void ThreadGraphDiagnosis(int threads, int thread, int partitions, int size, LevenshteinDatabase database) {
         List<PathDiagnostics> maxLengths = new List<PathDiagnostics>();
         List<PathDiagnostics> maxPaths = new List<PathDiagnostics>();

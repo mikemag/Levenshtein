@@ -194,42 +194,4 @@ public class LevenshteinGraph {
         }
         pathBuilder.Append(" }");
     }
-
-    public void WritePathStreams(int databaseWordCount, List<MemoryStream> streamList) {
-        Dictionary<int, List<int>>.Enumerator outerNumerator = outer.GetEnumerator();
-        while (outerNumerator.MoveNext()) {
-            MemoryStream stream = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(stream);
-                WritePathStreams(outerNumerator.Current.Key, outerNumerator.Current.Value, databaseWordCount, writer);
-
-                writer.Write(databaseWordCount);
-            streamList.Add(stream);
-        }
-    }
-
-    private void WritePathStreams(int currentWord, List<int> previousWords, int databaseWordCount, BinaryWriter writer) {
-        writer.Write(currentWord); // This is a line delimiter
-
-        if (previousWords.Count <= 1) {
-            foreach (int previousWord in previousWords) {
-                WritePathStreams(previousWord, searched[previousWord], databaseWordCount, writer);
-            }
-            return;
-        }
-
-        writer.Write(databaseWordCount + 1); // This marks an open bracket
-        foreach (int previousWord in previousWords) {
-            WritePathStreams(previousWord, searched[previousWord], databaseWordCount, writer);
-        }
-        writer.Write(databaseWordCount + 2); // This marks a closed bracket
-    }
-
-    public void WriteOuterBinary(int databaseWordCount, BinaryWriter writer) {
-        writer.Write(databaseWordCount);
-        writer.Write(databaseWordCount + Depth);
-
-        foreach(int key in outer.Keys) {
-            writer.Write(key);
-        }
-    }
 }
