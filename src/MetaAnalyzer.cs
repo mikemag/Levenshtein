@@ -157,7 +157,7 @@ public static class MetaAnalyzer
                         maxPaths.Clear();
                     }
 
-                    maxPaths.Add(new PathDiagnostics(graph.Depth, numPaths, root, outerEntry.Key));
+                    maxPaths.Add(new PathDiagnostics(graph.Depth - 1, numPaths, root, outerEntry.Key));
                 }
             }
         }
