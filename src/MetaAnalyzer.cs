@@ -1,6 +1,5 @@
 public class MetaAnalyzer {
     public static void Analyze(LevenshteinDatabase database) {
-        const int count = 1;
         const int partitionsPerThread = 100;
         const int threads = 16;
         int partitionSize = database.Words.Count() / partitionsPerThread / threads;
