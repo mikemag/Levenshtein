@@ -9,10 +9,12 @@ public class FinderSingleSided : LevenshteinPathFinder {
         LevenshteinGraph g = new LevenshteinGraph(wordIndex1);
         while (true) {
             bool generateNewOuterSucceeded = g.GenerateNewOuter(database);
+
+#pragma warning disable CS0162
             if (PRINT_EXTRA) {
                 Console.WriteLine("Outer: " + g.OuterCount);
-                Console.WriteLine("Searched: " + g.SearchedCount);
             }
+#pragma warning restore CS0162
 
             if (!generateNewOuterSucceeded) {
                 return null;

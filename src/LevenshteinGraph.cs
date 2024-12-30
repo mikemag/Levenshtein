@@ -3,7 +3,6 @@ using System.Text;
 public class LevenshteinGraph {
     public int Depth { get; private set; }
     public int OuterCount { get => outer.Count; }
-    public int SearchedCount { get => searched.Count; }
     public Dictionary<int, List<int>>.KeyCollection OuterKeys { get => outer.Keys; }
     
     private Dictionary<int, List<int>> outer;
