@@ -6,20 +6,20 @@ public abstract class LevenshteinBFSGraph {
     public int Root { get; private set; }
 
     /**
-     * Due to how many functions of a BFS graph require a
-     * LevenshteinDatabase, one has been included for internal 
-     * use. Always refer to the internal database rather than 
-     * an external one from a parameter, when possible.
+     * How many times a new frontier has been generated (which
+     * includes the initial frontier containing only Root).
      */
-    protected readonly LevenshteinDatabase _database;
     public abstract int Depth { get; }
 
     /**
      * C# has a strange limitation where you can define a
      * property of type which implements a single interface, but
      * not multiple. As a workaround, this interface defines the
-     * properties and methods we care about from those two
-     * ICollection and IEnumerable.
+     * properties and methods we care about from ICollection 
+     * and IEnumerable and includes a Contains method.
+     *
+     * An added benefit of this approach is it ensures the
+     * internal contents of the graph are publicly readonly.
      */
     public abstract IFrontier Frontier { get; }
 
@@ -29,6 +29,13 @@ public abstract class LevenshteinBFSGraph {
         public bool Contains(int value);
     }
 
+    /**
+     * Due to how many functions of a BFS graph require a
+     * LevenshteinDatabase, one has been included for internal 
+     * use. Always refer to the internal database rather than 
+     * an external one from a parameter, when possible.
+     */
+    protected readonly LevenshteinDatabase _database;
 
     public LevenshteinBFSGraph(int root, LevenshteinDatabase database) {
         Root = root;

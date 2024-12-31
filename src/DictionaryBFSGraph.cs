@@ -22,9 +22,15 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
     private FrontierContainer _frontierContainer;
 
     /**
-     * Searched is used both for reconstructing paths after finishing the
-     * breadth-first search and ensuring each word is contained in only one
-     * layer.
+     * _searched and _frontier are used both for reconstructing paths after
+     * finishing the breadth-first search and ensuring each word is
+     * contained in only one layer.
+     *
+     * The advantages of using an integer-keyed dictionary of lists are fast
+     * access times and low memory usage if spare.
+     *
+     * The disadvantages are high memory usage if dense and the requirement
+     * to allocate memory for new lists for each word in it.
      */
     private Dictionary<int, List<int>> _frontier { get => _frontierContainer._frontier; set => _frontierContainer._frontier = value; }
     private readonly Dictionary<int, List<int>> _searched;
@@ -36,16 +42,6 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
         _depth = 1;
     }
 
-    /**
-     * This method puts every word in outer into searched and replaces outer with a new outer containing the neighbors of the previous outer.
-     * NOTE: A neighbor already in the graph is not added. Any path which arrives at a word later than another path will not be a levenshtein.
-     * Generating the graph layer-by-layer and checking for links on each layer prevents generation and checking of words with distances past the target. 
-     * It does this by temporarily creating a new Dictionary to store the new outer.
-     * For each word in the previous outer, all of its neighbors are added to the new outer.
-     * The word is also added to the previous of each neighbor.
-     * If a word generates a neighbor that's already in the new outer, the word is simply added to the previous of that neighbor.
-     * Once it is finished iterating across outer, it is put into searched and replaced with newOuter.
-     */
     public override bool GenerateNewFrontier() {
         Dictionary<int, List<int>> newOuter = new Dictionary<int, List<int>>();
 
@@ -83,15 +79,6 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
         return true;
     }
 
-    /**
-     * Finds all paths between wordIndex1 and wordIndex2 after a breadth-first
-     * search has been completed.
-     *
-     * Does this by reading the values of the searched map (Lists containing
-     * every previous word), adding each to a copy of the path and recursively
-     * calling the helper method with these copies, returning once the path has
-     * reached the its destination word.
-     */
     public override List<int[]> AllPathsTo(int outerWordIndex, bool reversed) {
         List<int[]> toReturn = new List<int[]>();
         int[] previous = new int[Depth];
