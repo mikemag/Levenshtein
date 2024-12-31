@@ -191,4 +191,11 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
         }
         pathBuilder.Append(" }");
     }
+
+    public override void Reset(int newRoot) {
+        base.Reset(newRoot);
+        _searched.Clear();
+        _frontier.Clear();
+        _depth = 1;
+    }
 }
