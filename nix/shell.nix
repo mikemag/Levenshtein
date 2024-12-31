@@ -14,5 +14,5 @@ pkgs.mkShell {
         cowsay Hello nerd! Ready to build Levenshtein!
     '';
 
-    DOTNET_ROOT="${pkgs.dotnet-sdk_7}/share/dotnet";
+    DOTNET_ROOT="${pkgs.dotnet-sdk_8}/share/dotnet";
 }
