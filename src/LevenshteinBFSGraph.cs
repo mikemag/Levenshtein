@@ -12,6 +12,7 @@ public abstract class LevenshteinBFSGraph {
      * an external one from a parameter, when possible.
      */
     protected readonly LevenshteinDatabase _database;
+    public abstract int Depth { get; }
 
     /**
      * C# has a strange limitation where you can define a
@@ -20,17 +21,18 @@ public abstract class LevenshteinBFSGraph {
      * properties and methods we care about from those two
      * ICollection and IEnumerable.
      */
-    public IFrontier Frontier { get; }
+    public abstract IFrontier Frontier { get; }
 
     public interface IFrontier {
         public int Count { get; }
         public IEnumerator<int> GetEnumerator();
+        public bool Contains(int value);
     }
 
-    public LevenshteinBFSGraph(int root, LevenshteinDatabase database, IFrontier frontier) {
+
+    public LevenshteinBFSGraph(int root, LevenshteinDatabase database) {
         Root = root;
         _database = database;
-        Frontier = frontier;
     }
 
     /**

@@ -53,21 +53,21 @@ public class MetaAnalyzer {
 
     private static void MakeGraphDiagnostics(int root, LevenshteinDatabase database, List<PathDiagnostics> maxLengths, List<PathDiagnostics> maxPaths) {
         Dictionary<int, List<int[]>> pathDictionary = new Dictionary<int, List<int[]>>();
-        LevenshteinGraph graph = new LevenshteinGraph(root);
+        LevenshteinBFSGraph graph = new DictionaryBFSGraph(root, database);
 
-        bool generateFirstOuterSucceeded = graph.GenerateNewOuter(database);
+        bool generateFirstOuterSucceeded = graph.GenerateNewFrontier();
 
-        foreach (int key in graph.OuterKeys) {
-            pathDictionary.Add(key, graph.AllPathsBetween(root, key, false));
+        foreach (int key in graph.Frontier) {
+            pathDictionary.Add(key, graph.AllPathsTo(key, false));
         }
 
         if (!generateFirstOuterSucceeded) {
             return;
         }
 
-        while (graph.GenerateNewOuter(database)) {
-            foreach(int outerWord in graph.OuterKeys) {
-                int numPaths = graph.NumberOfPathsFrom(outerWord);
+        while (graph.GenerateNewFrontier()) {
+            foreach(int outerWord in graph.Frontier) {
+                int numPaths = graph.NumberOfPathsTo(outerWord);
                 if (numPaths >= maxPaths[0].count) {
                     if (numPaths > maxPaths[0].count) {
                         maxPaths.Clear();
@@ -81,8 +81,8 @@ public class MetaAnalyzer {
             if (graph.Depth - 1 > maxLengths[0].length) {
                 maxLengths.Clear();
             }
-            foreach (int furthestWord in graph.OuterKeys) {
-                maxLengths.Add(new PathDiagnostics(graph.Depth - 1, graph.NumberOfPathsFrom(furthestWord), root, furthestWord));
+            foreach (int furthestWord in graph.Frontier) {
+                maxLengths.Add(new PathDiagnostics(graph.Depth - 1, graph.NumberOfPathsTo(furthestWord), root, furthestWord));
             }
         }
     }
