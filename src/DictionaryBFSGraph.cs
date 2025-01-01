@@ -8,15 +8,11 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
     public override IFrontier Frontier { get => _frontierContainer; }
  
     private struct FrontierContainer : IFrontier {
-        public Dictionary<int, List<int>> _frontier;
+        public Dictionary<int, List<int>> Frontier;
 
-        public FrontierContainer(Dictionary<int, List<int>> frontier) {
-            _frontier = frontier;
-        }
-
-        public int Count => _frontier.Count;
-        public IEnumerator<int> GetEnumerator() => _frontier.Keys.GetEnumerator();
-        public bool Contains(int value) => _frontier.Keys.Contains(value);
+        public int Count => Frontier.Count;
+        public IEnumerator<int> GetEnumerator() => Frontier.Keys.GetEnumerator();
+        public bool Contains(int value) => Frontier.Keys.Contains(value);
     }   
 
     private FrontierContainer _frontierContainer;
@@ -32,12 +28,12 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
      * The disadvantages are high memory usage if dense and the requirement
      * to allocate memory for new lists for each word in it.
      */
-    private Dictionary<int, List<int>> _frontier { get => _frontierContainer._frontier; set => _frontierContainer._frontier = value; }
+    private Dictionary<int, List<int>> _frontier { get => _frontierContainer.Frontier; set => _frontierContainer.Frontier = value; }
     private readonly Dictionary<int, List<int>> _searched;
 
     public DictionaryBFSGraph(int root, LevenshteinDatabase database) : base(root, database) {
         _searched = new Dictionary<int, List<int>>();
-        _frontierContainer = new FrontierContainer(new Dictionary<int, List<int>>());
+        _frontierContainer.Frontier = new Dictionary<int, List<int>>();
         _frontier.Add(root, new List<int>());
         _depth = 1;
     }
