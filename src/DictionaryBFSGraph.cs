@@ -114,6 +114,10 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
     }
 
     public override int NumberOfPathsTo(int outerWordIndex) {
+        if (outerWordIndex == Root) {
+            return 1;
+        }
+
         int paths = 0;
         foreach (int outerPrevious in _frontier[outerWordIndex]) {
             paths += RecursiveNumberOfPathsTo(outerPrevious);
