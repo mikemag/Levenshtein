@@ -17,11 +17,10 @@ public class MetaAnalyzer {
         maxLengths.Add(new PathDiagnostics(0, 0, 0, 0));
         maxPaths.Add(new PathDiagnostics(0, 0, 0, 0));
 
+        LevenshteinBFSGraph graph = new DictionaryBFSGraph(0, database);
         for (int i = threads * partitionsPerThread * partitionSize; i < database.Words.Count(); i++) {
-            MakeGraphDiagnostics(i, database, maxLengths, maxPaths);
+            MakeGraphDiagnostics(i, database, maxLengths, maxPaths, graph);
         }
-        ThreadPool.SetMinThreads(0, 1);
-        ThreadPool.SetMaxThreads(threads, 1);
 
         foreach (PathDiagnostics path in maxLengths) {
             Console.WriteLine("(excess): " + path.ToString());
@@ -32,6 +31,8 @@ public class MetaAnalyzer {
     }
 
     private static void ThreadGraphDiagnosis(int threads, int thread, int partitions, int size, LevenshteinDatabase database) {
+        LevenshteinBFSGraph graph = new DictionaryBFSGraph(0, database);
+
         List<PathDiagnostics> maxLengths = new List<PathDiagnostics>();
         List<PathDiagnostics> maxPaths = new List<PathDiagnostics>();
         maxLengths.Add(new PathDiagnostics(0, 0, 0, 0));
@@ -43,7 +44,7 @@ public class MetaAnalyzer {
             long time0 = Stopwatch.GetTimestamp();
             for (int j = thread + i * threads; j < size * partitions * threads; j += partitions * threads) {
                 /*Console.WriteLine(j);*/
-                MakeGraphDiagnostics(j, database, maxLengths, maxPaths);
+                MakeGraphDiagnostics(j, database, maxLengths, maxPaths, graph);
             }
             Console.WriteLine($"Done with partition ({thread}): {i + 1} out of {partitions} in {(Stopwatch.GetTimestamp() - time0) / ticksPerMS} milliseconds");
         }
@@ -56,9 +57,10 @@ public class MetaAnalyzer {
         }
     }
 
-    private static void MakeGraphDiagnostics(int root, LevenshteinDatabase database, List<PathDiagnostics> maxLengths, List<PathDiagnostics> maxPaths) {
+    private static void MakeGraphDiagnostics(int root, LevenshteinDatabase database, List<PathDiagnostics> maxLengths, List<PathDiagnostics> maxPaths, LevenshteinBFSGraph graph) {
         Dictionary<int, List<int[]>> pathDictionary = new Dictionary<int, List<int[]>>();
-        LevenshteinBFSGraph graph = new DictionaryBFSGraph(root, database);
+
+        graph.Reset(root);
 
         bool generateFirstOuterSucceeded = graph.GenerateNewFrontier();
 
