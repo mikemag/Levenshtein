@@ -196,6 +196,7 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
         base.Reset(newRoot);
         _searched.Clear();
         _frontier.Clear();
+        _frontier.Add(newRoot, new List<int>());
         _depth = 1;
     }
 }

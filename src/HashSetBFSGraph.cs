@@ -146,5 +146,7 @@ public class HashSetBFSGraph : LevenshteinBFSGraph {
     public override void Reset(int newRoot) {
         base.Reset(newRoot);
         _layers.Clear();
+        _layers.Add(new HashSet<int>());
+        _frontier.Add(newRoot);
     }
 }
