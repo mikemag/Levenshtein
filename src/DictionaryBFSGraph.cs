@@ -8,7 +8,7 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
     public override IFrontier Frontier { get => _frontierContainer; }
  
     private struct FrontierContainer : IFrontier {
-        public Dictionary<int, List<int>> Frontier;
+        public Dictionary<int, WordEntry> Frontier;
 
         public int Count => Frontier.Count;
         public IEnumerator<int> GetEnumerator() => Frontier.Keys.GetEnumerator();
@@ -22,33 +22,52 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
      * finishing the breadth-first search and ensuring each word is
      * contained in only one layer.
      *
-     * The advantages of using an integer-keyed dictionary of lists are fast
-     * access times and low memory usage if spare.
+     * The advantages of using an integer-keyed dictionary of WordEntries
+     * are fast access times and low memory usage if spare.
      *
      * The disadvantages are high memory usage if dense and the requirement
      * to allocate memory for new lists for each word in it.
      */
-    private Dictionary<int, List<int>> _frontier { get => _frontierContainer.Frontier; set => _frontierContainer.Frontier = value; }
-    private readonly Dictionary<int, List<int>> _searched;
+    private Dictionary<int, WordEntry> _frontier { get => _frontierContainer.Frontier; set => _frontierContainer.Frontier = value; }
+    private readonly Dictionary<int, WordEntry> _searched;
+
+    /**
+     * WordEntry is a container for two important properties of each word.
+     *
+     * PreviousWords is needed to reconstruct paths in AllPathsTo.
+     *
+     * PathCount is cached because the additional memory usage is 
+     * inconsequential while allowing NumberOfPathsTo to be a fast dictionary
+     * lookup.
+     */
+    private struct WordEntry {
+        public int PathCount;
+        public List<int> PreviousWords;
+
+        public WordEntry(int pathCount, List<int> previousWords) {
+            PathCount = pathCount;
+            PreviousWords = previousWords;
+        }
+    }
 
     public DictionaryBFSGraph(int root, LevenshteinDatabase database) : base(root, database) {
-        _searched = new Dictionary<int, List<int>>();
-        _frontierContainer.Frontier = new Dictionary<int, List<int>>();
-        _frontier.Add(root, new List<int>());
+        _searched = new Dictionary<int, WordEntry>();
+        _frontierContainer.Frontier = new Dictionary<int, WordEntry>();
+        _frontier.Add(root, new WordEntry(1, new List<int>()));
         _depth = 1;
     }
 
     public override bool GenerateNewFrontier() {
-        Dictionary<int, List<int>> newOuter = new Dictionary<int, List<int>>();
+        Dictionary<int, WordEntry> newOuter = new Dictionary<int, WordEntry>();
 
         /*searched = searched.Concat(outer).ToDictionary(pair => pair.Key, pair => pair.Value);*/
         // The foreach loop is faster than Concat, which is extremely disappointing.
-        foreach (KeyValuePair<int, List<int>> entry in _frontier) {
+        foreach (KeyValuePair<int, WordEntry> entry in _frontier) {
             _searched.Add(entry.Key, entry.Value);
         }
 
-        foreach (int outerWord in _frontier.Keys) {
-            int[] neighbors = _database.FindNeighbors(outerWord);
+        foreach (KeyValuePair<int, WordEntry> outerEntry in _frontier) {
+            int[] neighbors = _database.FindNeighbors(outerEntry.Key);
 
             foreach (int neighbor in neighbors) {
                 if (_searched.ContainsKey(neighbor)) {
@@ -56,13 +75,18 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
                 }
 
                 if (!newOuter.ContainsKey(neighbor)) {
-                    List<int> listToAdd = new List<int>();
-                    listToAdd.Add(outerWord);
-                    newOuter.Add(neighbor, listToAdd);
+                    List<int> previousToAdd = new List<int>();
+                    previousToAdd.Add(outerEntry.Key);
+
+                    WordEntry entryToAdd = new WordEntry(outerEntry.Value.PathCount, previousToAdd);
+                    newOuter.Add(neighbor, entryToAdd);
                     continue;
                 }
 
-                newOuter[neighbor].Add(outerWord);
+                WordEntry entryCopy = newOuter[neighbor];
+                entryCopy.PathCount += outerEntry.Value.PathCount;
+                entryCopy.PreviousWords.Add(outerEntry.Key);
+                newOuter[neighbor] = entryCopy;
             }
         }
         
@@ -76,7 +100,7 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
     }
 
     public override List<int[]> AllPathsTo(int outerWordIndex, bool reversed) {
-        List<int[]> toReturn = new List<int[]>();
+        List<int[]> toReturn = new List<int[]>(_frontier[outerWordIndex].PathCount);
         int[] previous = new int[Depth];
 
         if (Root == outerWordIndex) {
@@ -87,10 +111,10 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
 
         if (reversed) {
             previous[0] = outerWordIndex;
-            AllPathsTo(toReturn, previous, _frontier[outerWordIndex], 0, 1);
+            AllPathsTo(toReturn, previous, _frontier[outerWordIndex].PreviousWords, 0, 1);
         } else {
             previous[Depth - 1] = outerWordIndex;
-            AllPathsTo(toReturn, previous, _frontier[outerWordIndex], Depth - 1, -1);
+            AllPathsTo(toReturn, previous, _frontier[outerWordIndex].PreviousWords, Depth - 1, -1);
         }
 
         return toReturn;
@@ -109,33 +133,12 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
             int[] newPrevious = new int[currentPath.Length];
             currentPath.CopyTo(newPrevious, 0);
             newPrevious[index] = wordIndex;
-            AllPathsTo(paths, newPrevious, _searched[wordIndex], index, indexIncrement);
+            AllPathsTo(paths, newPrevious, _searched[wordIndex].PreviousWords, index, indexIncrement);
         }
     }
 
     public override int NumberOfPathsTo(int outerWordIndex) {
-        if (outerWordIndex == Root) {
-            return 1;
-        }
-
-        int paths = 0;
-        foreach (int outerPrevious in _frontier[outerWordIndex]) {
-            paths += RecursiveNumberOfPathsTo(outerPrevious);
-        }
-        return paths;
-    }
-
-    private int RecursiveNumberOfPathsTo(int searchedWordIndex) {
-        if (_searched[searchedWordIndex].Count() == 0) {
-            return 1;
-        }
-
-        int paths = 0;
-        foreach (int previous in _searched[searchedWordIndex]) {
-            paths += RecursiveNumberOfPathsTo(previous); 
-        }
-
-        return paths;
+        return _frontier[outerWordIndex].PathCount;
     }
 
     public override List<int> FrontierIntersection(LevenshteinBFSGraph otherGraph) {
@@ -145,8 +148,8 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
             throw new ArgumentException("Cannot intersect LevenshteinBFSGraphs of different types");
         }
 
-        Dictionary<int, List<int>> biggerFrontier = this._frontier;
-        Dictionary<int, List<int>> smallerFrontier = ((DictionaryBFSGraph)otherGraph)._frontier;
+        Dictionary<int, WordEntry> biggerFrontier = this._frontier;
+        Dictionary<int, WordEntry> smallerFrontier = ((DictionaryBFSGraph)otherGraph)._frontier;
 
         if (((DictionaryBFSGraph)otherGraph).Frontier.Count > this.Frontier.Count) {
             smallerFrontier = this._frontier;
@@ -165,9 +168,9 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
     public String OuterPathString() {
         StringBuilder pathBuilder = new StringBuilder();
 
-        Dictionary<int, List<int>>.Enumerator outerNumerator = _frontier.GetEnumerator();
+        Dictionary<int, WordEntry>.Enumerator outerNumerator = _frontier.GetEnumerator();
         while (outerNumerator.MoveNext()) {
-            AppendPathStrings(outerNumerator.Current.Key, outerNumerator.Current.Value, pathBuilder);
+            AppendPathStrings(outerNumerator.Current.Key, outerNumerator.Current.Value.PreviousWords, pathBuilder);
 
             pathBuilder.Append("\n");
         }
@@ -180,14 +183,14 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
 
         if (previous.Count <= 1) {
             foreach (int word in previous) {
-                AppendPathStrings(word, _searched[word], pathBuilder);
+                AppendPathStrings(word, _searched[word].PreviousWords, pathBuilder);
             }
             return;
         }
 
         pathBuilder.Append(" {");
         foreach(int word in previous) {
-            AppendPathStrings(word, _searched[word], pathBuilder);
+            AppendPathStrings(word, _searched[word].PreviousWords, pathBuilder);
         }
         pathBuilder.Append(" }");
     }
@@ -196,7 +199,7 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
         base.Reset(newRoot);
         _searched.Clear();
         _frontier.Clear();
-        _frontier.Add(newRoot, new List<int>());
+        _frontier.Add(newRoot, new WordEntry(1, new List<int>()));
         _depth = 1;
     }
 }
