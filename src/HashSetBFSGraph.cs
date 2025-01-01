@@ -89,23 +89,29 @@ public class HashSetBFSGraph : LevenshteinBFSGraph {
     }
 
     public override int NumberOfPathsTo(int outerWordIndex) {
+        if (outerWordIndex == Root) {
+            return 1;
+        }
+
         int paths = 0;
         foreach (int outerNeighbor in _database.FindNeighbors(outerWordIndex)) {
-            if (_frontier.Contains(outerNeighbor)) {
-                paths += RecursiveNumberOfPathsTo(outerNeighbor, Depth - 2);
+            if (_layers[Depth - 2].Contains(outerNeighbor)) {
+                paths += RecursiveNumberOfPathsTo(outerNeighbor, Depth - 1);
             }
         }
         return paths;
     }
 
     private int RecursiveNumberOfPathsTo(int wordIndex, int currentLayer) {
-        if (currentLayer == 1) {
+        currentLayer--;
+
+        if (currentLayer == 0) {
             return 1;
         }
 
         int paths = 0;
-        foreach (int neighbor in _database.FindNeighbors(currentLayer)) {
-            if (_layers[currentLayer].Contains(neighbor)) {
+        foreach (int neighbor in _database.FindNeighbors(wordIndex)) {
+            if (_layers[currentLayer - 1].Contains(neighbor)) {
                 paths += RecursiveNumberOfPathsTo(neighbor, currentLayer); 
             }
         }
