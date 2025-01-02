@@ -58,15 +58,9 @@ public class MetaAnalyzer {
     }
 
     private static void MakeGraphDiagnostics(int root, LevenshteinDatabase database, List<PathDiagnostics> maxLengths, List<PathDiagnostics> maxPaths, LevenshteinBFSGraph graph) {
-        Dictionary<int, List<int[]>> pathDictionary = new Dictionary<int, List<int[]>>();
-
         graph.Reset(root);
 
         bool generateFirstOuterSucceeded = graph.GenerateNewFrontier();
-
-        foreach (int key in graph.Frontier) {
-            pathDictionary.Add(key, graph.AllPathsTo(key, false));
-        }
 
         if (!generateFirstOuterSucceeded) {
             return;
