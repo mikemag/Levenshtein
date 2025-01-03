@@ -17,7 +17,7 @@ public class MetaAnalyzer {
         maxLengths.Add(new PathDiagnostics(0, 0, 0, 0));
         maxPaths.Add(new PathDiagnostics(0, 0, 0, 0));
 
-        LevenshteinBFSGraph graph = new DictionaryBFSGraph(0, database);
+        LevenshteinBFSGraph graph = new ArrayBFSGraph(0, database);
         for (int i = threads * partitionsPerThread * partitionSize; i < database.Words.Count(); i++) {
             MakeGraphDiagnostics(i, database, maxLengths, maxPaths, graph);
         }
@@ -31,7 +31,7 @@ public class MetaAnalyzer {
     }
 
     private static void ThreadGraphDiagnosis(int threads, int thread, int partitions, int size, LevenshteinDatabase database) {
-        LevenshteinBFSGraph graph = new DictionaryBFSGraph(0, database);
+        LevenshteinBFSGraph graph = new ArrayBFSGraph(0, database);
 
         List<PathDiagnostics> maxLengths = new List<PathDiagnostics>();
         List<PathDiagnostics> maxPaths = new List<PathDiagnostics>();
