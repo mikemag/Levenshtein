@@ -7,35 +7,33 @@ public class FinderDualSided : LevenshteinPathFinder {
             return paths;
         }
 
-        LevenshteinGraph graph1 = new LevenshteinGraph(wordIndex1);
-        LevenshteinGraph graph2 = new LevenshteinGraph(wordIndex2);
+        LevenshteinBFSGraph graph1 = new DictionaryBFSGraph(wordIndex1, database);
+        LevenshteinBFSGraph graph2 = new DictionaryBFSGraph(wordIndex2, database);
 
         while(true) {
-            int graph1OSize = graph1.OuterCount;
-            int graph2OSize = graph2.OuterCount;
-            bool generateNewOuterSucceeded;
+            bool generateNewFrontierSucceeded;
 
-            if (graph1OSize <= graph2OSize) {
-                generateNewOuterSucceeded = graph1.GenerateNewOuter(database);
+            if (graph1.Frontier.Count <= graph2.Frontier.Count) {
+                generateNewFrontierSucceeded = graph1.GenerateNewFrontier();
             } else {
-                generateNewOuterSucceeded = graph2.GenerateNewOuter(database);
+                generateNewFrontierSucceeded = graph2.GenerateNewFrontier();
             }
 
-            if (!generateNewOuterSucceeded) {
+            if (!generateNewFrontierSucceeded) {
                 return null;
             } 
 
+#pragma warning disable CS0162
             if (PRINT_EXTRA) {
-                Console.WriteLine("Start Outer: " + graph1OSize);
-                Console.WriteLine("Target Outer: " + graph2OSize);
-                Console.WriteLine("Start Searched: " + graph1.SearchedCount);
-                Console.WriteLine("Target Searched: " + graph2.SearchedCount);
+                Console.WriteLine("Start Frontier: " + graph1.Frontier.Count);
+                Console.WriteLine("Target Frontier: " + graph2.Frontier.Count);
             }
+#pragma warning restore CS0162
 
-            List<int> outerIntersection = LevenshteinGraph.OuterIntersection(graph1, graph2);
+            List<int> frontierIntersection = graph1.FrontierIntersection(graph2);
 
-            if (outerIntersection.Count != 0) {
-                return GraphsToPaths(graph1, graph2, wordIndex1, wordIndex2, outerIntersection);
+            if (frontierIntersection.Count != 0) {
+                return GraphsToPaths(graph1, graph2, frontierIntersection);
             }
         }
     }
@@ -44,14 +42,14 @@ public class FinderDualSided : LevenshteinPathFinder {
      * On each graph, the paths between the root word and the intersection words are found.
      * Then, these paths are "stitched together", such that all unique paths from the staring word to the ending word.
      */
-    private static List<int[]> GraphsToPaths(LevenshteinGraph graph1, LevenshteinGraph graph2, int wordIndex1, int wordIndex2, List<int> intersection) {
+    private static List<int[]> GraphsToPaths(LevenshteinBFSGraph graph1, LevenshteinBFSGraph graph2, List<int> intersection) {
         List<int[]> pathsToReturn = new List<int[]>();
         List<int[]> graph1Paths = new List<int[]>();
         List<int[]> graph2Paths = new List<int[]>();
 
         foreach (int word in intersection) {
-            graph1Paths.AddRange(graph1.AllPathsBetween(wordIndex1, word, false));
-            graph2Paths.AddRange(graph2.AllPathsBetween(wordIndex2, word, true));
+            graph1Paths.AddRange(graph1.AllPathsTo(word, false));
+            graph2Paths.AddRange(graph2.AllPathsTo(word, true));
         }
         // For each word in intersection, there may be multiple paths to it from the starting word and there may be multiple to the ending word.
         // To account for this, each rootPath is indexed and then a unique path for each destinationPath is added to pathsToReturn.

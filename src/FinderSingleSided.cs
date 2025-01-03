@@ -6,20 +6,22 @@ public class FinderSingleSided : LevenshteinPathFinder {
             paths.Add(path);
             return paths;
         }
-        LevenshteinGraph g = new LevenshteinGraph(wordIndex1);
+        LevenshteinBFSGraph graph = new DictionaryBFSGraph(wordIndex1, database);
         while (true) {
-            bool generateNewOuterSucceeded = g.GenerateNewOuter(database);
-            if (PRINT_EXTRA) {
-                Console.WriteLine("Outer: " + g.OuterCount);
-                Console.WriteLine("Searched: " + g.SearchedCount);
-            }
+            bool generateNewFrontierSucceeded = graph.GenerateNewFrontier();
 
-            if (!generateNewOuterSucceeded) {
+#pragma warning disable CS0162
+            if (PRINT_EXTRA) {
+                Console.WriteLine("Frontier: " + graph.Frontier.Count);
+            }
+#pragma warning restore CS0162
+
+            if (!generateNewFrontierSucceeded) {
                 return null;
             }
             
-            if (g.OuterContains(wordIndex2)) {
-                return g.AllPathsBetween(wordIndex1, wordIndex2, false);
+            if (graph.Frontier.Contains(wordIndex2)) {
+                return graph.AllPathsTo(wordIndex2, false);
             }
         }
     }

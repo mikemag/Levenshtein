@@ -1,12 +1,14 @@
+using System.Diagnostics;
+
 public class MetaAnalyzer {
     public static void Analyze(LevenshteinDatabase database) {
-        const int count = 1;
         const int partitionsPerThread = 100;
         const int threads = 16;
         int partitionSize = database.Words.Count() / partitionsPerThread / threads;
 
         for (int t = 0; t < threads; t++) {
-            Thread thread = new Thread(() => ThreadGraphDiagnosis(threads, t, partitionsPerThread, partitionSize, database));
+            int threadId = t;
+            Thread thread = new Thread(() => ThreadGraphDiagnosis(threads, threadId, partitionsPerThread, partitionSize, database));
             thread.Start();
         }
 
@@ -15,11 +17,10 @@ public class MetaAnalyzer {
         maxLengths.Add(new PathDiagnostics(0, 0, 0, 0));
         maxPaths.Add(new PathDiagnostics(0, 0, 0, 0));
 
+        LevenshteinBFSGraph graph = new ArrayBFSGraph(0, database);
         for (int i = threads * partitionsPerThread * partitionSize; i < database.Words.Count(); i++) {
-            MakeGraphDiagnostics(i, database, maxLengths, maxPaths);
+            MakeGraphDiagnostics(i, database, maxLengths, maxPaths, graph);
         }
-        ThreadPool.SetMinThreads(0, 1);
-        ThreadPool.SetMaxThreads(threads, 1);
 
         foreach (PathDiagnostics path in maxLengths) {
             Console.WriteLine("(excess): " + path.ToString());
@@ -29,53 +30,23 @@ public class MetaAnalyzer {
         }
     }
 
-    private static void GraphToBinary(int max, int partitions, int offset, LevenshteinDatabase database, FileStream output) {
-        MemoryStream graphStream = new MemoryStream();
-        BinaryWriter writer = new BinaryWriter(graphStream);
-
-        for (int i = offset; i < max; i += partitions) {
-            LevenshteinGraph graph = new LevenshteinGraph(i);
-
-            while (graph.GenerateNewOuter(database)) {
-                graph.WriteOuterBinary(database.Words.Count(), writer);
-            }
-        }
-        writer.Close();
-
-        output.Write(graphStream.ToArray());
-        graphStream.Dispose();
-        writer.Dispose();
-    }
-
-    private static void AddPathsForPartition(int max, int partitions, int offset, LevenshteinDatabase database, FileStream output) {
-        List<MemoryStream> paths = new List<MemoryStream>();
-
-        for (int i = offset; i < max; i += partitions) {
-            LevenshteinGraph graph = new LevenshteinGraph(i);
-
-            while (graph.GenerateNewOuter(database)) {
-                graph.WritePathStreams(database.Words.Count(), paths);
-            }
-        }
-
-        foreach (MemoryStream stream in paths) {
-            output.Write(stream.ToArray());
-            stream.Dispose();
-        }
-    }
-
     private static void ThreadGraphDiagnosis(int threads, int thread, int partitions, int size, LevenshteinDatabase database) {
+        LevenshteinBFSGraph graph = new ArrayBFSGraph(0, database);
+
         List<PathDiagnostics> maxLengths = new List<PathDiagnostics>();
         List<PathDiagnostics> maxPaths = new List<PathDiagnostics>();
         maxLengths.Add(new PathDiagnostics(0, 0, 0, 0));
         maxPaths.Add(new PathDiagnostics(0, 0, 0, 0));
 
+        long ticksPerMS = Stopwatch.Frequency / 1000;
+
         for (int i = 0; i < partitions; i++) {
+            long time0 = Stopwatch.GetTimestamp();
             for (int j = thread + i * threads; j < size * partitions * threads; j += partitions * threads) {
                 /*Console.WriteLine(j);*/
-                MakeGraphDiagnostics(j, database, maxLengths, maxPaths);
+                MakeGraphDiagnostics(j, database, maxLengths, maxPaths, graph);
             }
-            Console.WriteLine("Done with partition (" + thread + "): " + (i + 1) + " out of " + partitions);
+            Console.WriteLine($"Done with partition ({thread}): {i + 1} out of {partitions} in {(Stopwatch.GetTimestamp() - time0) / ticksPerMS} milliseconds");
         }
 
         foreach (PathDiagnostics path in maxLengths) {
@@ -86,23 +57,18 @@ public class MetaAnalyzer {
         }
     }
 
-    private static void MakeGraphDiagnostics(int root, LevenshteinDatabase database, List<PathDiagnostics> maxLengths, List<PathDiagnostics> maxPaths) {
-        Dictionary<int, List<int[]>> pathDictionary = new Dictionary<int, List<int[]>>();
-        LevenshteinGraph graph = new LevenshteinGraph(root);
+    private static void MakeGraphDiagnostics(int root, LevenshteinDatabase database, List<PathDiagnostics> maxLengths, List<PathDiagnostics> maxPaths, LevenshteinBFSGraph graph) {
+        graph.Reset(root);
 
-        bool generateFirstOuterSucceeded = graph.GenerateNewOuter(database);
-
-        foreach (int key in graph.OuterKeys) {
-            pathDictionary.Add(key, graph.AllPathsBetween(root, key, false));
-        }
+        bool generateFirstOuterSucceeded = graph.GenerateNewFrontier();
 
         if (!generateFirstOuterSucceeded) {
             return;
         }
 
-        while (graph.GenerateNewOuter(database)) {
-            foreach(int outerWord in graph.OuterKeys) {
-                int numPaths = graph.NumberOfPathsFrom(outerWord);
+        while (graph.GenerateNewFrontier()) {
+            foreach(int outerWord in graph.Frontier) {
+                int numPaths = graph.NumberOfPathsTo(outerWord);
                 if (numPaths >= maxPaths[0].count) {
                     if (numPaths > maxPaths[0].count) {
                         maxPaths.Clear();
@@ -116,8 +82,8 @@ public class MetaAnalyzer {
             if (graph.Depth - 1 > maxLengths[0].length) {
                 maxLengths.Clear();
             }
-            foreach (int furthestWord in graph.OuterKeys) {
-                maxLengths.Add(new PathDiagnostics(graph.Depth - 1, graph.NumberOfPathsFrom(furthestWord), root, furthestWord));
+            foreach (int furthestWord in graph.Frontier) {
+                maxLengths.Add(new PathDiagnostics(graph.Depth - 1, graph.NumberOfPathsTo(furthestWord), root, furthestWord));
             }
         }
     }
