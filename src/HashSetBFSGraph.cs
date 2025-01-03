@@ -13,6 +13,19 @@ public class HashSetBFSGraph : LevenshteinBFSGraph {
 
     private LayerContainer _layerContainer;
 
+    /**
+     * _layers is used both to ensure each word is contained in only 
+     * one layer and reconstructing and counting paths after 
+     * finishing the breadth-first search.
+     *
+     * The advantages of using a list of HashSets are memory efficiency
+     * if sparse without needing to preallocate much while retaining 
+     * fast frontier indexing.
+     *
+     * The disadvantages are the large cost of reallocating multiple
+     * HashSets and extra time spent recomputing the previous words
+     * of each word.
+     */
     private HashSet<int> _frontier => _layers[Depth - 1];
 
     private List<HashSet<int>> _layers;

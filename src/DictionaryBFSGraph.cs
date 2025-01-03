@@ -18,9 +18,9 @@ public class DictionaryBFSGraph : LevenshteinBFSGraph {
     private FrontierContainer _frontierContainer;
 
     /**
-     * _searched and _frontier are used both for reconstructing paths after
-     * finishing the breadth-first search and ensuring each word is
-     * contained in only one layer.
+     * _searched and _frontier are used both for ensuring each word is 
+     * contained in only one layer and reconstructing and counting
+     * paths after finishing the breadth-first search.
      *
      * The advantages of using an integer-keyed dictionary of WordEntries
      * are fast access times and low memory usage if spare.

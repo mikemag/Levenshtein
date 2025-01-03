@@ -70,6 +70,16 @@ public class ArrayBFSGraph : LevenshteinBFSGraph {
         }
     }
 
+    /**
+     * WordEntry is a container for two important properties of each word.
+     *
+     * Depth contains the depth of the graph when the word was added to the
+     * frontier. This is necessary for path reconstruction.
+     *
+     * PathCount is cached because the additional memory usage is 
+     * inconsequential while allowing NumberOfPathsTo to be a array
+     * lookup.
+     */
     private struct WordEntry {
         public int PathCount;
         public byte Depth;
@@ -80,6 +90,19 @@ public class ArrayBFSGraph : LevenshteinBFSGraph {
         }
     }
 
+    /**
+     * _wordArray is used both to ensure each word is contained in only 
+     * one layer and reconstructing and counting paths after 
+     * finishing the breadth-first search.
+     *
+     * The advantages of using a single array are memory efficiency and
+     * zero reallocation between resets and.
+     *
+     * The disadvantages are the reliance on a LevenshteinDatabase that
+     * caches neighbors, requirement to pre-allocate the entire array,
+     * extra time it takes to find the previous words, and slow frontier
+     * indexing.
+     */
     private WordEntry[] _wordArray;
 
     public ArrayBFSGraph(int root, LevenshteinDatabase database) : base(root, database) {
