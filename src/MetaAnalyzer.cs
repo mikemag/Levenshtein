@@ -17,7 +17,7 @@ public class MetaAnalyzer {
         maxLengths.Add(new PathDiagnostics(0, 0, 0, 0));
         maxPaths.Add(new PathDiagnostics(0, 0, 0, 0));
 
-        LevenshteinBFSGraph graph = new ArrayBFSGraph(0, database);
+        LevenshteinBFSGraph graph = new ArrayBFSGraphQueue(0, database);
         for (int i = threads * partitionsPerThread * partitionSize; i < database.Words.Count(); i++) {
             MakeGraphDiagnostics(i, database, maxLengths, maxPaths, graph);
         }
@@ -31,7 +31,7 @@ public class MetaAnalyzer {
     }
 
     private static void ThreadGraphDiagnosis(int threads, int thread, int partitions, int size, LevenshteinDatabase database) {
-        LevenshteinBFSGraph graph = new ArrayBFSGraph(0, database);
+        LevenshteinBFSGraph graph = new ArrayBFSGraphQueue(0, database);
 
         List<PathDiagnostics> maxLengths = new List<PathDiagnostics>();
         List<PathDiagnostics> maxPaths = new List<PathDiagnostics>();
@@ -66,14 +66,25 @@ public class MetaAnalyzer {
             return;
         }
 
-        while (graph.GenerateNewFrontier()) {
-            foreach(int outerWord in graph.Frontier) {
-                int numPaths = graph.NumberOfPathsTo(outerWord);
-                if (numPaths >= maxPaths[0].count) {
-                    if (numPaths > maxPaths[0].count) {
-                        maxPaths.Clear();
-                    };
-                    maxPaths.Add(new PathDiagnostics(graph.Depth, numPaths, root, outerWord));
+        while (graph.GenerateNewFrontier()) { }
+
+        var g = (ArrayBFSGraphQueue)graph;
+        var maxPathCount = 0;
+        for (var i = 0; i < g._wordArray.Length; i++)
+        {
+            if (g._wordArray[i].PathCount > maxPathCount)
+            {
+                maxPathCount = g._wordArray[i].PathCount;
+            }
+        }
+        if (maxPathCount >= maxPaths[0].count)
+        {
+            if (maxPathCount > maxPaths[0].count) maxPaths.Clear();
+            for (var i = 0; i < g._wordArray.Length; i++)
+            {
+                if (g._wordArray[i].PathCount == maxPathCount)
+                {
+                    maxPaths.Add(new PathDiagnostics(g._wordArray[i].Depth, maxPathCount, root, i));
                 }
             }
         }
