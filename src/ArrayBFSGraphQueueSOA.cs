@@ -4,23 +4,23 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
     private int _depth;
 
     public override IFrontier Frontier {
-        get => new FrontierHelper(_wordArray, _depth);
+        get => new FrontierHelper(depths, _depth);
     }
 
     private class FrontierHelper : IFrontier {
-        private WordEntry[] _wordArray;
+        private byte[] _depths;
         private int _depth;
 
-        public FrontierHelper(WordEntry[] wordArray, int depth) {
-            _wordArray = wordArray;
+        public FrontierHelper(byte[] depths, int depth) {
+            _depths = depths;
             _depth = depth;
         }
 
         public int Count { 
             get {
                 int count = 0;
-                foreach (WordEntry word in _wordArray) {
-                    if (word.Depth == _depth) {
+                foreach (var d in _depths) {
+                    if (d == _depth) {
                         count++;
                     }
                 }
@@ -29,15 +29,15 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
         }
 
         public bool Contains(int value) {
-            return _wordArray[value].Depth == _depth;
+            return _depths[value] == _depth;
         }
 
         public IEnumerator<int> GetEnumerator() {
-            return new FrontierEnumerator(_wordArray, _depth);
+            return new FrontierEnumerator(_depths, _depth);
         }
 
         private class FrontierEnumerator : IEnumerator<int> {
-            private WordEntry[] _wordArray;
+            private byte[] _depths;
             private int _depth;
             private int _index = -1;
 
@@ -45,19 +45,19 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
 
             public object Current => _index;
 
-            public FrontierEnumerator(WordEntry[] wordArray, int depth) {
-                _wordArray = wordArray;
+            public FrontierEnumerator(byte[] depths, int depth) {
+                _depths = depths;
                 _depth = depth;
             }
 
             public bool MoveNext() {
                 do {
                     _index++;
-                    if (_index == _wordArray.Count()) {
+                    if (_index == _depths.Count()) {
                         _index--;
                         return false;
                     }
-                } while (_wordArray[_index].Depth != _depth);
+                } while (_depths[_index] != _depth);
 
                 return true;
             }
@@ -91,8 +91,8 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
     }
 
     /**
-     * _wordArray is used both to ensure each word is contained in only 
-     * one layer and reconstructing and counting paths after 
+     * _wordArray is used both to ensure each word is contained in only
+     * one layer and reconstructing and counting paths after
      * finishing the breadth-first search.
      *
      * The advantages of using a single array are memory efficiency and
@@ -103,13 +103,16 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
      * extra time it takes to find the previous words, and slow frontier
      * indexing.
      */
-    public WordEntry[] _wordArray;
+    public int[] pathCounts;
+    public byte[] depths;
     private Queue<int> _queue;
 
     public ArrayBFSGraphQueueSOA(int root, LevenshteinDatabase database) : base(root, database) {
-        _wordArray = new WordEntry[database.Words.Count()];
+        pathCounts = new int[database.Words.Count()];
+        depths = new byte[database.Words.Count()];
         _depth = 1;
-        _wordArray[root] = new WordEntry(1, 1);
+        pathCounts[root] = 1;
+        depths[root] = 1;
         _queue = new Queue<int>();
         _queue.Enqueue(root);
         _queue.Enqueue(-1);
@@ -117,9 +120,11 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
 
     public override void Reset(int newRoot) {
         base.Reset(newRoot);
-        Array.Clear(_wordArray);
+        Array.Clear(depths);
+        Array.Clear(pathCounts); // mmmfixme: don't really need to clear, but do need to check depths[i] != 0 before using elsewhere.
         _depth = 1;
-        _wordArray[newRoot] = new WordEntry(1, 1);
+        pathCounts[newRoot] = 1;
+        depths[newRoot] = 1;
         _queue.Clear();
         _queue.Enqueue(newRoot);
         _queue.Enqueue(-1);
@@ -128,8 +133,7 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
     public override bool GenerateNewFrontier() {
         bool succeeded = false;
 
-        while (_queue.Count > 0) {
-            int i = _queue.Dequeue();
+        while (_queue.TryDequeue(out var i)) {
             if (i == -1)
             {
                 _queue.Enqueue(-1);
@@ -137,14 +141,13 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
             }
             
             foreach (int neighbor in _database.FindNeighbors(i)) {
-                if (_wordArray[neighbor].Depth == 0) {
+                if (depths[neighbor] == 0) {
                     succeeded = true;
-                    _wordArray[neighbor] = new WordEntry(_wordArray[i].PathCount, (byte)(_depth + 1));
+                    depths[neighbor] = (byte)(_depth + 1);
+                    pathCounts[neighbor] = pathCounts[i];
                     _queue.Enqueue(neighbor);
-                } else if (_wordArray[neighbor].Depth == _depth + 1) {
-                    WordEntry wordCopy = _wordArray[neighbor];
-                    wordCopy.PathCount += _wordArray[i].PathCount;
-                    _wordArray[neighbor] = wordCopy;
+                } else if (depths[neighbor] == _depth + 1) {
+                    pathCounts[neighbor] += pathCounts[i];
                 }
             }
         }
@@ -158,7 +161,7 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
     }
 
     public override List<int[]> AllPathsTo(int outerWordIndex, bool reversed) {
-        List<int[]> toReturn = new List<int[]>(_wordArray[outerWordIndex].PathCount);
+        List<int[]> toReturn = new List<int[]>(pathCounts[outerWordIndex]);
         int[] previous = new int[_depth];
 
         if (Root == outerWordIndex) {
@@ -189,7 +192,7 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
         }
 
         foreach (int neighbor in _database.FindNeighbors(currentWord)) {
-            if (_wordArray[neighbor].Depth != currentDepth) {
+            if (depths[neighbor] != currentDepth) {
                 continue;
             }
 
@@ -201,7 +204,7 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
     }
 
     public override int NumberOfPathsTo(int outerWordIndex) {
-        return _wordArray[outerWordIndex].PathCount;
+        return pathCounts[outerWordIndex];
     }
 
     public override List<int> FrontierIntersection(LevenshteinBFSGraph otherGraph) {
@@ -212,7 +215,7 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
         }
 
         for (int i = 0; i < _database.Words.Count(); i++) {
-            if (_wordArray[i].Depth == _depth && ((ArrayBFSGraph)otherGraph)._wordArray[i].Depth == otherGraph.Depth) {
+            if (depths[i] == _depth && ((ArrayBFSGraph)otherGraph)._wordArray[i].Depth == otherGraph.Depth) {
                 intersection.Add(i);
             }
         }

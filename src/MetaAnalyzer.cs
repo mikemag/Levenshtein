@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 public class MetaAnalyzer {
     public static void Analyze(LevenshteinDatabase database) {
-        const int partitionsPerThread = 100;
+        const int partitionsPerThread = 2;
         const int threads = 16;
         int partitionSize = database.Words.Count() / partitionsPerThread / threads;
 
@@ -17,7 +17,7 @@ public class MetaAnalyzer {
         maxLengths.Add(new PathDiagnostics(0, 0, 0, 0));
         maxPaths.Add(new PathDiagnostics(0, 0, 0, 0));
 
-        LevenshteinBFSGraph graph = new ArrayBFSGraphQueue(0, database);
+        LevenshteinBFSGraph graph = new ArrayBFSGraphQueueSOA(0, database);
         for (int i = threads * partitionsPerThread * partitionSize; i < database.Words.Count(); i++) {
             MakeGraphDiagnostics(i, database, maxLengths, maxPaths, graph);
         }
@@ -31,7 +31,7 @@ public class MetaAnalyzer {
     }
 
     private static void ThreadGraphDiagnosis(int threads, int thread, int partitions, int size, LevenshteinDatabase database) {
-        LevenshteinBFSGraph graph = new ArrayBFSGraphQueue(0, database);
+        LevenshteinBFSGraph graph = new ArrayBFSGraphQueueSOA(0, database);
 
         List<PathDiagnostics> maxLengths = new List<PathDiagnostics>();
         List<PathDiagnostics> maxPaths = new List<PathDiagnostics>();
@@ -68,23 +68,52 @@ public class MetaAnalyzer {
 
         while (graph.GenerateNewFrontier()) { }
 
-        var g = (ArrayBFSGraphQueue)graph;
-        var maxPathCount = 0;
-        for (var i = 0; i < g._wordArray.Length; i++)
+        if (graph is ArrayBFSGraphQueue)
         {
-            if (g._wordArray[i].PathCount > maxPathCount)
-            {
-                maxPathCount = g._wordArray[i].PathCount;
-            }
-        }
-        if (maxPathCount >= maxPaths[0].count)
-        {
-            if (maxPathCount > maxPaths[0].count) maxPaths.Clear();
+            var g = (ArrayBFSGraphQueue)graph;
+            var maxPathCount = 0;
             for (var i = 0; i < g._wordArray.Length; i++)
             {
-                if (g._wordArray[i].PathCount == maxPathCount)
+                if (g._wordArray[i].PathCount > maxPathCount)
                 {
-                    maxPaths.Add(new PathDiagnostics(g._wordArray[i].Depth, maxPathCount, root, i));
+                    maxPathCount = g._wordArray[i].PathCount;
+                }
+            }
+
+            if (maxPathCount >= maxPaths[0].count)
+            {
+                if (maxPathCount > maxPaths[0].count) maxPaths.Clear();
+                for (var i = 0; i < g._wordArray.Length; i++)
+                {
+                    if (g._wordArray[i].PathCount == maxPathCount)
+                    {
+                        maxPaths.Add(new PathDiagnostics(g._wordArray[i].Depth, maxPathCount, root, i));
+                    }
+                }
+            }
+        }
+
+        if (graph is ArrayBFSGraphQueueSOA)
+        {
+            var g = (ArrayBFSGraphQueueSOA)graph;
+            var maxPathCount = 0;
+            for (var i = 0; i < g.pathCounts.Length; i++)
+            {
+                if (g.pathCounts[i] > maxPathCount)
+                {
+                    maxPathCount = g.pathCounts[i];
+                }
+            }
+
+            if (maxPathCount >= maxPaths[0].count)
+            {
+                if (maxPathCount > maxPaths[0].count) maxPaths.Clear();
+                for (var i = 0; i < g.pathCounts.Length; i++)
+                {
+                    if (g.pathCounts[i] == maxPathCount)
+                    {
+                        maxPaths.Add(new PathDiagnostics(g.depths[i], maxPathCount, root, i));
+                    }
                 }
             }
         }
