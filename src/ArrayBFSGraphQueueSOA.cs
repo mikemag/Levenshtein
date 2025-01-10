@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
     public override int Depth { get => _depth; }
 
@@ -130,31 +132,58 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
         _queue.Enqueue(-1);
     }
 
-    public override bool GenerateNewFrontier() {
-        bool succeeded = false;
+    public override bool GenerateNewFrontier()
+    {
+        var succeeded = false;
 
-        while (_queue.TryDequeue(out var i)) {
+        while (_queue.TryDequeue(out var i))
+        {
             if (i == -1)
             {
                 _queue.Enqueue(-1);
                 break;
             }
-            
-            foreach (int neighbor in _database.FindNeighbors(i)) {
-                if (depths[neighbor] == 0) {
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            void ConsiderNeighbor(int neighbor, int neighborDepth)
+            {
+                if (neighborDepth == 0)
+                {
                     succeeded = true;
                     depths[neighbor] = (byte)(_depth + 1);
                     pathCounts[neighbor] = pathCounts[i];
                     _queue.Enqueue(neighbor);
-                } else if (depths[neighbor] == _depth + 1) {
+                }
+                else if (neighborDepth == _depth + 1)
+                {
                     pathCounts[neighbor] += pathCounts[i];
                 }
             }
+
+            var nl = _database.FindNeighbors(i);
+            var nll = nl.Length & ~3;
+            var j = 0;
+            for (; j < nll; j += 4)
+            {
+                var neighbor0 = nl[j];
+                var neighbor1 = nl[j + 1];
+                var neighbor2 = nl[j + 2];
+                var neighbor3 = nl[j + 3];
+
+                ConsiderNeighbor(neighbor0, depths[neighbor0]);
+                ConsiderNeighbor(neighbor1, depths[neighbor1]);
+                ConsiderNeighbor(neighbor2, depths[neighbor2]);
+                ConsiderNeighbor(neighbor3, depths[neighbor3]);
+            }
+
+            for (; j < nl.Length; j++)
+            {
+                var neighbor = nl[j];
+                ConsiderNeighbor(neighbor, depths[neighbor]);
+            }
         }
 
-        if (!succeeded) {
-            return false;
-        }
+        if (!succeeded) return false;
 
         _depth++;
         return true;
@@ -222,5 +251,4 @@ public class ArrayBFSGraphQueueSOA : LevenshteinBFSGraph {
 
         return intersection;
     }
-
 }
